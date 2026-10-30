@@ -32,7 +32,7 @@ app.use(
 app.use(express.json({ limit: "1mb"}));
 
 //endpoint sencillo para comprobar estado de api.
-app.get("/api/healt", (req, res) => {
+app.get("/api/health", (req, res) => {
     res.status(200).json({
         success: true,
         message: "Magical books coffee API está funcionando.",
@@ -41,20 +41,10 @@ app.get("/api/healt", (req, res) => {
 
 
 //programamos las respuestas para las rutas que no existen o no estan estipuladas
-app.use((err, req, res, next) => {
-    console.error(err);
-
-    if (res.headersSent) {
-        return next(err);
-    }
-
-    res.status(err.status || 500).json({
+app.use((req, res) => {
+    res.status(404).json({
         success: false,
-        message:
-        process.env.NODE_ENV === "produccion"
-        ? "Ha ocurrido un error interno"
-        :err.message,
+        message: "Ruta no encontrada",
     });
 });
-
 export default app;

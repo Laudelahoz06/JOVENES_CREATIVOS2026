@@ -1,14 +1,20 @@
-const PORT = process.env.PORT || 3000;
+import dotenv from "dotenv";
+dotenv.config();
 
-// al conectarse mongo correctamente la api empieza a escuchar
+import app from "./app.js";
+import conectarBd from "./config/database.js";
+        const PORT = process.env.PORT || 3000;
+
+
+// Iniciamos primero la conexión y después el servidor.
 async function iniciarServer() {
     try {
-        await connectDatabase();
+        await conectarBd();
         app.listen(PORT, () => {
             console.log(`API disponible en http://localhost:${PORT}`);
         });
     } catch (error) {
-        console.error("No fue posible iniciar el server:", error.menssage);
+        console.error("No fue posible iniciar el server:", error.message);
         process.exit(1);
     }
 }
