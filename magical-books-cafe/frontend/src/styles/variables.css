@@ -1,0 +1,14 @@
+:root {
+    --color-background: #171321;
+    --color-surface: #302342;
+    --color-primary: #9B72CF;
+    --color-accent: #D6A968;
+    --color-text: #F4EBDD;
+    --color-wood: #63452F;
+
+    --font-title: Georgia, serif;
+    --font-body: Arial, sans-serif;
+
+    --radius-card: 16px;
+    --transition: 0.3s ease;
+}

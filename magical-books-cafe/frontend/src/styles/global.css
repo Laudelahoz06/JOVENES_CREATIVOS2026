@@ -1,0 +1,224 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    background: var(--color-background);
+    color: var(--color-text);
+    font-family: var(--font-body);
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button {
+    font-family: inherit;
+    cursor: pointer;
+}
+
+section {
+    padding: 70px 8%;
+}
+
+.navbar {
+    min-height: 75px;
+    padding: 15px 6%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(23, 19, 33, 0.96);
+    border-bottom: 1px solid rgba(214, 169, 104, 0.2);
+}
+
+.brand {
+    font-family: var(--font-title);
+    font-size: 22px;
+    color: var(--color-accent);
+}
+
+.nav-links {
+    display: flex;
+    gap: 25px;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+    color: var(--color-primary);
+}
+
+.hero {
+    min-height: 650px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    background:
+        linear-gradient(
+            90deg,
+            rgba(23, 19, 33, 0.96),
+            rgba(23, 19, 33, 0.45)
+        ),
+        url("/images/cafe-hero.jpg") center/cover;
+}
+
+.hero-overlay {
+    max-width: 650px;
+}
+
+.hero h1 {
+    font-family: var(--font-title);
+    font-size: clamp(42px, 7vw, 78px);
+    margin: 20px 0;
+}
+
+.hero h1 span {
+    color: var(--color-accent);
+}
+
+.hero p {
+    line-height: 1.8;
+    margin-bottom: 30px;
+}
+
+.hero-subtitle,
+.section-heading span {
+    color: var(--color-accent);
+    letter-spacing: 3px;
+    font-size: 12px;
+}
+
+.btn-primary,
+.btn-secondary {
+    display: inline-block;
+    padding: 13px 22px;
+    border-radius: 8px;
+    margin: 5px;
+    transition: var(--transition);
+}
+
+.btn-primary {
+    background: var(--color-primary);
+    color: white;
+}
+
+.btn-secondary {
+    border: 1px solid var(--color-accent);
+}
+
+.btn-primary:hover,
+.btn-secondary:hover {
+    transform: translateY(-3px);
+}
+
+.section-heading {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.section-heading h2 {
+    font-family: var(--font-title);
+    font-size: 36px;
+    margin: 15px 0;
+}
+
+.experience-grid,
+.product-grid,
+.catalog-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 25px;
+}
+
+.experience-card,
+.product-card,
+.catalog-product-card {
+    background: var(--color-surface);
+    border: 1px solid rgba(214, 169, 104, 0.16);
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.experience-card {
+    padding: 30px;
+}
+
+.experience-card:hover,
+.product-card:hover {
+    transform: translateY(-6px);
+    border-color: var(--color-primary);
+}
+
+.experience-icon {
+    font-size: 32px;
+}
+
+.experience-card h3,
+.product-info h3 {
+    margin: 15px 0 10px;
+}
+
+.product-card img,
+.catalog-product-card img {
+    width: 100%;
+    height: 230px;
+    object-fit: cover;
+}
+
+.product-info,
+.catalog-product-info {
+    padding: 20px;
+}
+
+.product-info span,
+.catalog-product-info span {
+    color: var(--color-accent);
+}
+
+@media (max-width: 768px) {
+
+    .navbar {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .experience-grid,
+    .product-grid,
+    .catalog-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .hero {
+        min-height: 550px;
+    }
+}
+
+@media (max-width: 480px) {
+
+    section {
+        padding: 50px 5%;
+    }
+
+    .experience-grid,
+    .product-grid,
+    .catalog-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hero h1 {
+        font-size: 42px;
+    }
+}
