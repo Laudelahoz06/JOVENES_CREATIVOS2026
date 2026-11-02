@@ -1,16 +1,31 @@
+
 import mongoose from "mongoose";
 
-/**
- Se establece la conexion con MongoDB. la uri se obtiene del entorno para no escribir credenciales directamente en el codigo fuente y mantener la seguridad, cambiar segun sea el caso.
- */
+// Función encargada de conectar nuestra aplicación con MongoDB Atlas.
+const connectDB = async () => {
+    try {
+        // Verificamos que exista la cadena de conexión.
+        if (!process.env.MONGODB_URI) {
+            throw new Error("No se encontró MONGODB_URI en el archivo .env");
+        }
 
- export async function conectarBd() {
-    const uri = process.env.MONGODB_URI;
+        // Establecemos la conexión con la base de datos.
+        const connection = await mongoose.connect(
+            process.env.MONGODB_URI
+        );
 
-    if (!uri) {
-        throw new Error("Faltaa configurar MONGODB_URI en el archivo .env");
+        console.log("----------------------------------");
+        console.log("¡Conexión exitosa con MongoDB Atlas!");
+        console.log(`Servidor: ${connection.connection.host}`);
+        console.log(`Base de datos: ${connection.connection.name}`);
+        console.log("----------------------------------");
+
+    } catch (error) {
+        console.error("Error al conectar con MongoDB:");
+        console.error(error.message);
+
+        throw error;
     }
+};
 
-    await mongoose.connect(uri);
-    console.log("Conexión a la base de datos establecida correctamente.")
- }
+export default connectDB;
