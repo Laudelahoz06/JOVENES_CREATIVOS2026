@@ -3,7 +3,7 @@ dotenv.config();
 
 import app from "./app.js";
 
-import { conectarBd } from "./config/database.js";
+import connectDB from "./config/database.js";
 
 
 
@@ -11,7 +11,7 @@ import { conectarBd } from "./config/database.js";
 async function iniciarServer() {
     try {
         // Primero conectamos MongoDB Atlas.
-        await conectarBd();
+        await connectDB();
         
         // Después iniciamos Express.
         const PORT = process.env.PORT || 5000;
