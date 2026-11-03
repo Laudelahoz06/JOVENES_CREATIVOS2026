@@ -6,21 +6,23 @@ const userSchema = new mongoose.Schema({
     // Información personal.
     name: {
         type: String,
-        required: true,
-        trim: true
+        required: [true, "El nombre es obligatorio"],
+        trim: true,
+        maxlenght: 100
     },
 
     email: {
         type: String,
-        required: true,
+        required: [true, "El correo es obligatorio"],
         unique: true,
         lowercase: true,
-        trim: true
+        trim: true,
+        maxlenght: 150
     },
 
     password: {
         type: String,
-        required: true,
+        required: [true, "La contraseña en obligatoria"],
         minlength: 8,
         select: false
     },
@@ -40,19 +42,23 @@ const userSchema = new mongoose.Schema({
     // Preferencias para futuras recomendaciones de IA.
     preferences: {
         favoriteBooks: [{
-            type: String
+            type: String,
+            trim: true
         }],
 
         favoriteGenres: [{
-            type: String
+            type: String,
+            trim: true
         }],
 
         favoriteCoffee: [{
-            type: String
+            type: String,
+            trim: true
         }],
 
         favoriteMusic: [{
-            type: String
+            type: String,
+            trim: true
         }]
     },
 

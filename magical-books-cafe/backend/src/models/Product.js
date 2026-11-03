@@ -5,12 +5,15 @@ const productSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
+        maxlenght:150
     },
 
     description: {
         type: String,
-        required: true
+        required: true,
+        maxlenght: 2000,
+        trim: true
     },
 
     // Tipo de elemento del catálogo.
@@ -22,7 +25,8 @@ const productSchema = new mongoose.Schema({
 
     category: {
         type: String,
-        default: "General"
+        default: "General",
+        trim: true
     },
 
     price: {
@@ -46,7 +50,7 @@ const productSchema = new mongoose.Schema({
     // Formatos disponibles para libros.
     formats: [{
         type: String,
-        enum: ["physical", "digital", "kindle", "local_pc"]
+        enum: ["fisico", "digital", "kindle", "local_pc"]
     }],
 
     // Información del alquiler.
@@ -64,7 +68,8 @@ const productSchema = new mongoose.Schema({
 
         maxDays: {
             type: Number,
-            default: 30
+            default: 30,
+            min: 0
         }
     },
 
@@ -79,6 +84,11 @@ const productSchema = new mongoose.Schema({
     active: {
         type: Boolean,
         default: true
+    },
+
+    featured: {
+        type: Boolean,
+        default: false
     }
 
 }, {
