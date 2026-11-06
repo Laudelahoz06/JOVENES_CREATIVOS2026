@@ -65,7 +65,11 @@ const userSchema = new mongoose.Schema({
     active: {
         type: Boolean,
         default: true
-    }
+    },
+
+    revokedTokens: [{
+    type: String
+    }],
 
 }, {
     timestamps: true
