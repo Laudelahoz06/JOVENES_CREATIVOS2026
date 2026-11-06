@@ -3,6 +3,9 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import authRoutes from "./routes/authRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+
 
 const app = express();
 
@@ -16,8 +19,8 @@ app.use(
         origin: process.env.FRONTEND_URL,
         methods: ["GET", "POST", "PATCH", "DELETE"],
         allowedHeaders: ["Content-Type", "Authorization"],
-         credentials: true
-}));
+        credentials: true
+})  );
 
 // 3. Permitir solicitudes con información JSON.
 app.use(express.json({ limit: "1mb" }));
@@ -31,6 +34,12 @@ const apiLimiter = rateLimit({
 });
 
 app.use("/api", apiLimiter);
+
+// conectar ruta de autenticación.
+app.use("/api/auth", authRoutes);
+
+
+app.use("/api/admin", adminRoutes);
 
 // 5. Ruta para comprobar que la API funciona.
 app.get("/api/health", (req, res) => {
@@ -66,4 +75,6 @@ app.use((error, req, res, next) => {
 
 });
 
-export default app; 
+
+
+export default app;     
