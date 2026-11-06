@@ -10,7 +10,21 @@ import {
 
 import { authenticate } from "../middlewares/authMiddleware.js";
 
+import rateLimit from "express-rate-limit";
+
+
 const router = express.Router();
+
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 10,
+    standardHeaders: "draft-7",
+    legacyHeaders: false,
+    message: {
+        success: false,
+        message: "Demasiados intentos. Intenta nuevamente en 15 minutos."
+    }
+});
 
 const registerValidation = [
     body("name")
@@ -45,8 +59,8 @@ const loginValidation = [
         .withMessage("La contraseña es obligatoria.")
 ];
 
-router.post("/register", registerValidation, register);
-router.post("/login", loginValidation, login);
+router.post("/register", authLimiter, registerValidation, register);
+router.post("/login", authLimiter, loginValidation, login);
 router.get("/profile", authenticate, getProfile);
 router.post("/logout", authenticate, logout);
 

@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 // Función encargada de conectar nuestra aplicación con MongoDB Atlas.
 const connectDB = async () => {
     try {
+        
         // Verificamos que exista la cadena de conexión.
         if (!process.env.MONGODB_URI) {
             throw new Error("No se encontró MONGODB_URI en el archivo .env");

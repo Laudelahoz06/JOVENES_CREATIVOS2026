@@ -1,29 +1,35 @@
 const experiences = [
+
     {
         icon: "☕",
         title: "Café",
         description: "Sabores que inspiran."
     },
+
     {
         icon: "📚",
         title: "Libros",
         description: "Historias para descubrir."
     },
+
     {
         icon: "✦",
         title: "Comunidad",
         description: "Conecta con otros lectores."
     },
+
     {
         icon: "💻",
         title: "Coworking",
         description: "Un espacio para crear."
     },
+
     {
         icon: "♫",
         title: "Música",
         description: "Acompaña cada momento."
     },
+    
     {
         icon: "✧",
         title: "App Inteligente",

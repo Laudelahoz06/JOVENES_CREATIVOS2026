@@ -1,6 +1,7 @@
 function ProductCard({ product }) {
 
     return (
+        
         <article className="catalog-product-card">
 
             <img src={product.image} alt={product.name} />
