@@ -196,7 +196,7 @@ export const createProduct = async (req, res, next) => {
             price,
             imageUrl,
             formats,
-            stock,
+           // stock,
             rental,
             featured
         } = req.body;
@@ -210,7 +210,7 @@ export const createProduct = async (req, res, next) => {
             price,
             imageUrl,
             formats: formats || [],
-            stock: stock ?? 0,
+          //  stock: stock ?? 0,
             rental: rental || {},
             featured: featured ?? false
         });

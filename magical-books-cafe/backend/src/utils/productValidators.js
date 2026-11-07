@@ -3,7 +3,7 @@ import { body, query, param } from "express-validator";
 const allowedTypes = ["coffee", "dessert", "book", "service"];
 
 const allowedFormats = [
-    "physical",
+    "fisico",
     "digital",
     "kindle",
     "local_pc"
@@ -59,12 +59,12 @@ export const createProductValidation = [
         .isIn(allowedFormats)
         .withMessage("Se ha enviado un formato no permitido."),
 
-    body("stock")
+    /*body("stock")
         .optional()
         .isInt({ min: 0 })
         .withMessage("El inventario debe ser un entero no negativo.")
         .toInt(),
-
+*/
     body("rental.enabled")
         .optional()
         .isBoolean()
@@ -148,5 +148,21 @@ export const catalogQueryValidation = [
 
     query("featured").optional().isBoolean().toBoolean(),
 
-    query("search").optional().trim().isLength({ max: 100 })
+    query("search").optional().trim().isLength({ max: 100 }),
+
+    query("category")
+    .optional()
+    .trim()
+    .isLength({ max: 80 }),
+
+query("sort")
+    .optional()
+    .isIn([
+        "newest",
+        "oldest",
+        "priceAsc",
+        "priceDesc",
+        "nameAsc",
+        "nameDesc"
+    ]),
 ];
