@@ -5,7 +5,8 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
-
+import productRoutes from "./routes/productRoutes.js";
+import adminProductRoutes from "./routes/adminProductRoutes.js";
 
 const app = express();
 
@@ -75,6 +76,12 @@ app.use((error, req, res, next) => {
 
 });
 
+
+app.use("/api/auth", authRoutes);
+
+app.use("/api/products", productRoutes);
+
+app.use("/api/admin/products", adminProductRoutes);
 
 
 export default app;     
