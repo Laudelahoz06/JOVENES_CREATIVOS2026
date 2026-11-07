@@ -1,6 +1,15 @@
 import mongoose from "mongoose";
 
 const productSchema = new mongoose.Schema({
+    // Código único de producto
+    sku: {
+        type: String,
+        required: [true, "El código SKU es obligatorio"],
+        unique: true,
+        uppercase: true,
+        trim: true,
+        maxlength: 40
+    },
 
     name: {
         type: String,
@@ -25,8 +34,10 @@ const productSchema = new mongoose.Schema({
 
     category: {
         type: String,
+        required: true,
         default: "General",
-        trim: true
+        trim: true,
+        maxlength: 80
     },
 
     price: {
@@ -39,7 +50,7 @@ const productSchema = new mongoose.Schema({
         type: String,
         default: ""
     },
-
+// a reconsiderar.
     // Disponibilidad para compra o alquiler.
     availableFor: {
         type: [String],
@@ -60,7 +71,7 @@ const productSchema = new mongoose.Schema({
             default: false
         },
 
-        pricePerDay: {
+        dailyPrice: {
             type: Number,
             min: 0,
             default: 0
@@ -77,7 +88,11 @@ const productSchema = new mongoose.Schema({
     stock: {
         type: Number,
         default: 0,
-        min: 0
+        min: 0,
+        validate: {
+                validator: Number.isInteger,
+                message: "El inventario debe ser un número entero."
+            }
     },
 
     // Control de publicación.
@@ -92,9 +107,48 @@ const productSchema = new mongoose.Schema({
     }
 
 }, {
-    timestamps: true
+    timestamps: true,
+    versionKey: false
 });
 
+
+// reglas adicionales antes de ser guardado 
+productSchema.pre("validate", function () {
+    if (this.type !== "book" && this.formats.length > 0) {
+        this.invalidate(
+            "formats",
+            "Solo los libros pueden tener formatos de lectura."
+        );
+    }
+
+    if (this.rental.enabled) {
+        if (this.type !== "book") {
+            this.invalidate(
+                "rental.enabled",
+                "Solo los libros pueden habilitar alquiler."
+            );
+        }
+
+        if (this.rental.dailyPrice <= 0) {
+            this.invalidate(
+                "rental.dailyPrice",
+                "El precio diario debe ser mayor que cero."
+            );
+        }
+
+        if (this.rental.maxDays < 1) {
+            this.invalidate(
+                "rental.maxDays",
+                "La duración máxima debe ser al menos un día."
+            );
+        }
+    }
+});
+
+productSchema.index({ name: "text", description: "text" });
+productSchema.index({ type: 1, active: 1 });
+productSchema.index({ category: 1, active: 1 });
+productSchema.index({ price: 1 });
 const Product = mongoose.model("Product", productSchema);
 
 export default Product;
