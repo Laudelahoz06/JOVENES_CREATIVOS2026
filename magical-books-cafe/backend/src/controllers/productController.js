@@ -220,7 +220,7 @@ export const createProduct = async (req, res, next) => {
             message: "Producto creado correctamente.",
             product
         });
-
+/*
     } catch (error) {
         if (error.code === 11000) {
             return res.status(409).json({
@@ -230,7 +230,37 @@ export const createProduct = async (req, res, next) => {
         }
 
         next(error);
+    }*/
+
+
+
+
+        } catch (error) {
+
+    console.error("========== ERROR AL CREAR PRODUCTO ==========");
+
+    console.error("Código:", error.code);
+    console.error("Índice:", error.keyPattern);
+    console.error("Valor duplicado:", error.keyValue);
+    console.error("Mensaje:", error.message);
+
+    console.error("==============================================");
+
+    if (error.code === 11000) {
+        return res.status(409).json({
+            success: false,
+            message: "Se produjo un conflicto con un índice único.",
+            details: {
+                field: error.keyPattern,
+                value: error.keyValue
+            }
+        });
     }
+
+    next(error);
+}
+
+
 };
 
 // ACTUALIZAR PRODUCTO
