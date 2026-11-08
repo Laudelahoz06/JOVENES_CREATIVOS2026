@@ -39,8 +39,13 @@ app.use("/api", apiLimiter);
 // conectar ruta de autenticación.
 app.use("/api/auth", authRoutes);
 
+app.use("/api/products", productRoutes);
+
+app.use("/api/admin/products", adminProductRoutes);
 
 app.use("/api/admin", adminRoutes);
+
+
 
 // 5. Ruta para comprobar que la API funciona.
 app.get("/api/health", (req, res) => {
@@ -66,22 +71,39 @@ app.use((req, res) => {
 
 // 7. Manejo centralizado de errores.
 app.use((error, req, res, next) => {
-
     console.error(error);
 
-    res.status(500).json({
+    if (error.code === 11000) {
+        return res.status(409).json({
+            success: false,
+            message: "El registro ya existe."
+        });
+    }
+
+    if (error.name === "ValidationError") {
+        return res.status(400).json({
+            success: false,
+            message: "Los datos no cumplen las reglas del sistema.",
+            errors: Object.values(error.errors).map(item => ({
+                field: item.path,
+                message: item.message
+            }))
+        });
+    }
+
+    if (error.name === "CastError") {
+        return res.status(400).json({
+            success: false,
+            message: "El identificador o dato enviado no es válido."
+        });
+    }
+
+    return res.status(500).json({
         success: false,
         message: "Error interno del servidor."
     });
-
 });
 
-
-app.use("/api/auth", authRoutes);
-
-app.use("/api/products", productRoutes);
-
-app.use("/api/admin/products", adminProductRoutes);
 
 
 export default app;     
