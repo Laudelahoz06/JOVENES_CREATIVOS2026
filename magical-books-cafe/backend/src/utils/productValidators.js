@@ -44,6 +44,11 @@ export const createProductValidation = [
         .withMessage("El precio debe ser un número igual o mayor a cero.")
         .toFloat(),
 
+    body("image")
+        .optional({ values: "falsy" })
+        .isURL({ protocols: ["http", "https"], require_protocol: true })
+        .withMessage("La imagen debe tener una URL HTTP o HTTPS válida."),
+
     body("imageUrl")
         .optional({ values: "falsy" })
         .isURL({ protocols: ["http", "https"], require_protocol: true })
@@ -111,6 +116,10 @@ export const updateProductValidation = [
     body("category").optional().trim().notEmpty().isLength({ max: 80 }),
 
     body("price").optional().isFloat({ min: 0 }).toFloat(),
+
+    body("image")
+        .optional({ values: "falsy" })
+        .isURL({ protocols: ["http", "https"], require_protocol: true }),
 
     body("imageUrl")
         .optional({ values: "falsy" })

@@ -37,9 +37,13 @@ function Login() {
                 password: formData.password
             });
 
-            // Más adelante podremos dirigir cada rol
-            // a su panel correspondiente.
-            navigate("/");
+            // El administrador entra directo a su panel;
+            // el resto de usuarios vuelven al inicio.
+            if (data.user?.role === "admin") {
+                navigate("/admin");
+            } else {
+                navigate("/");
+            }
 
         } catch (err) {
             setError(

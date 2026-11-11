@@ -151,6 +151,62 @@ export const getProfile = async (req, res) => {
     });
 };
 
+// ACTUALIZAR PERFIL (preferencias, nombre y teléfono)
+export const updateProfile = async (req, res, next) => {
+    try {
+        if (!validateRequest(req, res)) return;
+
+        const { name, phone, preferences } = req.body;
+        const update = {};
+
+        if (name) update.name = name.trim();
+        if (phone !== undefined) update.phone = phone;
+
+        // Solo se conservan las preferencias permitidas por el modelo.
+        if (preferences && typeof preferences === "object") {
+            const permitidas = [
+                "favoriteBooks",
+                "favoriteGenres",
+                "favoriteCoffee",
+                "favoriteMusic"
+            ];
+
+            update.preferences = {};
+
+            for (const clave of permitidas) {
+                if (Array.isArray(preferences[clave])) {
+                    update.preferences[clave] = preferences[clave]
+                        .map((valor) => String(valor).trim())
+                        .filter(Boolean)
+                        .slice(0, 20);
+                }
+            }
+        }
+
+        const user = await User.findByIdAndUpdate(
+            req.user._id,
+            update,
+            { new: true, runValidators: true }
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Perfil actualizado correctamente.",
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                phone: user.phone,
+                preferences: user.preferences
+            }
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
 // CIERRE DE SESIÓN
 export const logout = async (req, res, next) => {
     try {

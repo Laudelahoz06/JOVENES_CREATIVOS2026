@@ -1,12 +1,21 @@
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
 
 
 function Navbar() {
     const { user, isAuthenticated, logout } = useAuth();
+    const { count } = useCart();
     const navigate = useNavigate();
+    const location = useLocation();
 
-    
+    const isAdmin = user?.role === "admin";
+
+    // En el panel administrativo solo se muestran las acciones de admin:
+    // los enlaces públicos del menú central quedan ocultos.
+    const isAdminPage = location.pathname.startsWith("/admin");
+
+
     const handleLogout = async () => {
         try {
             await logout();
@@ -26,21 +35,39 @@ function Navbar() {
                 <span>Magical Books Café</span>
             </Link>
 
-           
+            {!isAdminPage && (
+                <nav className="nav-links">
 
-            <nav className="nav-links">
+                    <NavLink to="/">Inicio</NavLink>
 
-                <NavLink to="/">Inicio</NavLink>
+                    <NavLink to="/catalogo">Catálogo</NavLink>
 
-                <NavLink to="/catalogo">Catálogo</NavLink>
+                    <NavLink to="/contacto">Contacto</NavLink>
 
-                <a href="#experiencias">Experiencias</a>
+                    <a href="/#experiencias">Experiencias</a>
 
-                <a href="#contacto">Contacto</a>
+                    {isAuthenticated && (
+                        <NavLink to="/mis-alquileres">Mis alquileres</NavLink>
+                    )}
 
-            </nav>
+                </nav>
+            )}
 
             <div className="nav-actions">
+
+                {!isAdmin && (
+                    <Link
+                        to="/carrito"
+                        className="nav-cart"
+                        aria-label="Ver carrito"
+                    >
+                        🛒 Carrito
+
+                        {count > 0 && (
+                            <span className="nav-cart-badge">{count}</span>
+                        )}
+                    </Link>
+                )}
 
                 {isAuthenticated ? (
                     <>
@@ -48,7 +75,13 @@ function Navbar() {
                             Hola, {user?.name?.split(" ")[0]}
                         </span>
 
-                        {user?.role === "admin" && (
+                        {!isAdmin && (
+                            <NavLink to="/perfil" className="btn-login">
+                                Mi perfil
+                            </NavLink>
+                        )}
+
+                        {isAdmin && (
                             <Link to="/admin" className="btn-login">
                                 Panel administrativo
                             </Link>
@@ -79,4 +112,4 @@ function Navbar() {
     );
 }
 
-export default Navbar;  
+export default Navbar;

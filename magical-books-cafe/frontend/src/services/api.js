@@ -32,7 +32,8 @@ export async function apiRequest(endpoint, options = {}) {
     } catch (error) {
         if (error instanceof TypeError) {
             throw new Error(
-                "No se pudo conectar con el servidor. Verifica que el backend esté activo."
+                "No se pudo conectar con el servidor. Verifica que el backend esté activo.",
+                { cause: error }
             );
         }
 

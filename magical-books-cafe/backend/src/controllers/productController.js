@@ -194,6 +194,7 @@ export const createProduct = async (req, res, next) => {
             type,
             category,
             price,
+            image,
             imageUrl,
             formats,
            // stock,
@@ -208,7 +209,7 @@ export const createProduct = async (req, res, next) => {
             type,
             category,
             price,
-            imageUrl,
+            image: image || imageUrl || "",
             formats: formats || [],
           //  stock: stock ?? 0,
             rental: rental || {},
@@ -285,7 +286,7 @@ export const updateProduct = async (req, res, next) => {
             "type",
             "category",
             "price",
-            "imageUrl",
+            "image",
             "formats",
             "featured"
         ];
@@ -294,6 +295,10 @@ export const updateProduct = async (req, res, next) => {
             if (req.body[field] !== undefined) {
                 product[field] = req.body[field];
             }
+        }
+
+        if (req.body.imageUrl !== undefined && req.body.image === undefined) {
+            product.image = req.body.imageUrl;
         }
 
         if (req.body.rental !== undefined) {

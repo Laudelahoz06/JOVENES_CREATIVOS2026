@@ -7,6 +7,11 @@ import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import adminProductRoutes from "./routes/adminProductRoutes.js";
+import contactRoutes from "./routes/contactRoutes.js";
+import rentalRoutes from "./routes/rentalRoutes.js";
+import orderRoutes from "./routes/orderRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
+import aiRoutes from "./routes/aiRoutes.js";
 
 const app = express();
 
@@ -44,6 +49,17 @@ app.use("/api/products", productRoutes);
 app.use("/api/admin/products", adminProductRoutes);
 
 app.use("/api/admin", adminRoutes);
+
+// Módulos nuevos: contacto, alquileres, pedidos y asistente.
+app.use("/api/contact", contactRoutes);
+
+app.use("/api/rentals", rentalRoutes);
+
+app.use("/api/orders", orderRoutes);
+
+app.use("/api/payments", paymentRoutes);
+
+app.use("/api/ai", aiRoutes);
 
 
 

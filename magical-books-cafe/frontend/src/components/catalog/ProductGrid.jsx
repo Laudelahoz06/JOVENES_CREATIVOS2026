@@ -1,21 +1,21 @@
 import ProductCard from "./ProductCard";
+import { ProductCardSkeleton } from "../common/Skeleton";
 
-function ProductGrid({ products, loading, error, onViewDetails }) {
+function ProductGrid({ products, loading, error }) {
     if (loading) {
         return (
             <div className="catalog-grid">
-                <p className="catalog-loading">
-                    Cargando productos...
-                </p>
+                {Array.from({ length: 6 }, (_, index) => (
+                    <ProductCardSkeleton key={index} />
+                ))}
             </div>
         );
     }
 
-
     if (error) {
         return (
             <div className="catalog-grid">
-                <p className="catalog-error">{error}</p>
+                <p className="catalog-status catalog-status-error">{error}</p>
             </div>
         );
     }
@@ -23,19 +23,19 @@ function ProductGrid({ products, loading, error, onViewDetails }) {
     if (products.length === 0) {
         return (
             <div className="catalog-grid">
-                <p>No hay productos disponibles por el momento.</p>
+                <p className="catalog-status">
+                    No encontramos productos con esos criterios.
+                </p>
             </div>
         );
     }
 
-
     return (
         <div className="catalog-grid">
             {products.map((product) => (
-                <ProductCard 
-                    key={product._id} 
+                <ProductCard
+                    key={product._id}
                     product={product}
-                    onViewDetails={onViewDetails}
                 />
             ))}
         </div>

@@ -15,13 +15,13 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true,
         trim: true,
-        maxlenght:150
+        maxlength:150
     },
 
     description: {
         type: String,
         required: true,
-        maxlenght: 2000,
+        maxlength: 2000,
         trim: true
     },
 

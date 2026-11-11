@@ -1,5 +1,10 @@
 
+import dns from "dns";
 import mongoose from "mongoose";
+
+// El router local (192.168.15.10) no responde consultas TXT y Atlas las
+// necesita para mongodb+srv → fallback a DNS público solo para este proceso.
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 // Función encargada de conectar nuestra aplicación con MongoDB Atlas.
 const connectDB = async () => {

@@ -5,6 +5,7 @@ import {
     register,
     login,
     getProfile,
+    updateProfile,
     logout
 } from "../controllers/authController.js";
 
@@ -59,9 +60,34 @@ const loginValidation = [
         .withMessage("La contraseña es obligatoria.")
 ];
 
+const updateProfileValidation = [
+    body("name")
+        .optional()
+        .trim()
+        .isLength({ min: 2, max: 100 })
+        .withMessage("El nombre debe tener entre 2 y 100 caracteres."),
+
+    body("phone")
+        .optional()
+        .trim()
+        .isLength({ max: 30 })
+        .withMessage("El teléfono no puede superar 30 caracteres."),
+
+    body("preferences")
+        .optional()
+        .isObject()
+        .withMessage("Las preferencias deben ser un objeto.")
+];
+
 router.post("/register", authLimiter, registerValidation, register);
 router.post("/login", authLimiter, loginValidation, login);
 router.get("/profile", authenticate, getProfile);
+router.patch(
+    "/profile",
+    authenticate,
+    updateProfileValidation,
+    updateProfile
+);
 router.post("/logout", authenticate, logout);
 
 export default router;

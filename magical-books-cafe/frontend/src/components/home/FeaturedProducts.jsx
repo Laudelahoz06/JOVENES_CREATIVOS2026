@@ -1,25 +1,32 @@
-const products = [
-    {
-        name: "Café Moka",
-        category: "Café premium",
-        price: 12000,
-        image: "/images/cafe-moka.jpg"
-    },
-    {
-        name: "Cheesecake artesanal",
-        category: "Postres",
-        price: 15000,
-        image: "/images/cheesecake.jpg"
-    },
-    {
-        name: "El Principito",
-        category: "Literatura",
-        price: 35000,
-        image: "/images/principito.jpg"
-    }
-];
+import { useEffect, useState } from "react";
+
+import { getFeaturedProducts } from "../../services/products";
 
 function FeaturedProducts() {
+
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+
+        let cancelled = false;
+
+        getFeaturedProducts(3)
+            .then((items) => {
+                if (!cancelled) setProducts(items);
+            })
+            .catch(() => {
+                if (!cancelled) setProducts([]);
+            })
+            .finally(() => {
+                if (!cancelled) setLoading(false);
+            });
+
+        return () => {
+            cancelled = true;
+        };
+
+    }, []);
 
     return (
         <section className="featured-products">
@@ -29,34 +36,56 @@ function FeaturedProducts() {
                 <h2>Favoritos del universo Magical</h2>
             </div>
 
-            <div className="product-grid">
+            {loading && (
+                <p className="catalog-status">
+                    Cargando destacados...
+                </p>
+            )}
 
-                {products.map((product) => (
+            {!loading && products.length === 0 && (
+                <p className="catalog-status">
+                    Pronto mostraremos nuestros favoritos.
+                </p>
+            )}
 
-                    <article className="product-card" key={product.name}>
+            {!loading && products.length > 0 && (
 
-                        <img
-                            src={product.image}
-                            alt={product.name}
-                        />
+                <div className="product-grid">
 
-                        <div className="product-info">
+                    {products.map((product) => (
 
-                            <span>{product.category}</span>
+                        <article className="product-card" key={product._id}>
 
-                            <h3>{product.name}</h3>
+                            {product.image ? (
+                                <img
+                                    src={product.image}
+                                    alt={product.name}
+                                />
+                            ) : (
+                                <div className="catalog-product-placeholder">
+                                    Sin imagen
+                                </div>
+                            )}
 
-                            <p>
-                                ${product.price.toLocaleString("es-CO")}
-                            </p>
+                            <div className="product-info">
 
-                        </div>
+                                <span>{product.category}</span>
 
-                    </article>
+                                <h3>{product.name}</h3>
 
-                ))}
+                                <p>
+                                    ${Number(product.price ?? 0).toLocaleString("es-CO")}
+                                </p>
 
-            </div>
+                            </div>
+
+                        </article>
+
+                    ))}
+
+                </div>
+
+            )}
 
         </section>
     );

@@ -4,8 +4,14 @@ import MainLayout from "../layouts/MainLayout";
 
 import Home from "../pages/Home";
 import Catalog from "../pages/Catalog";
+import ProductDetail from "../pages/ProductDetail";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
+import Contact from "../pages/Contact";
+import Cart from "../pages/Cart";
+import PaymentResult from "../pages/PaymentResult";
+import Profile from "../pages/Profile";
+import MyRentals from "../pages/MyRentals";
 import NotFound from "../pages/NotFound";
 
 import ProtectedRoute from "../components/common/ProtectedRoute";
@@ -20,29 +26,59 @@ function AppRouter() {
             <Routes>
 
                 <Route element={<MainLayout />}>
-                
 
                     <Route path="/" element={<Home />} />
 
                     <Route path="/catalogo" element={<Catalog />} />
 
+                    <Route
+                        path="/catalogo/:id"
+                        element={<ProductDetail />}
+                    />
+
                     <Route path="/iniciar-sesion" element={<Login />} />
-                    
+
                     <Route path="/registro" element={<Register />} />
 
+                    <Route path="/contacto" element={<Contact />} />
+
+                    <Route path="/carrito" element={<Cart />} />
+
+                    <Route
+                        path="/pagos/resultado"
+                        element={<PaymentResult />}
+                    />
+
+                    <Route
+                        path="/perfil"
+                        element={
+                            <ProtectedRoute>
+                                <Profile />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/mis-alquileres"
+                        element={
+                            <ProtectedRoute>
+                                <MyRentals />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/admin"
+                        element={
+                            <ProtectedRoute allowedRoles={["admin"]}>
+                                <AdminDashboard />
+                            </ProtectedRoute>
+                        }
+                    />
 
                     <Route path="*" element={<NotFound />} />
 
                 </Route>
-
-                <Route
-                    path="/admin"
-                    element={
-                        <ProtectedRoute allowedRoles={["admin"]}>
-                            <AdminDashboard />
-                        </ProtectedRoute>
-                    }
-                />
 
             </Routes>
 

@@ -20,7 +20,7 @@ const rentalSchema = new mongoose.Schema(
         // Modalidad del alquiler.
         format: {
             type: String,
-            enum: ["digital", "kindle", "local_pc"],
+            enum: ["fisico", "digital", "kindle", "local_pc"],
             required: true
         },
 

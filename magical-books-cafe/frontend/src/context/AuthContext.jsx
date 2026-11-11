@@ -15,7 +15,9 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
 
     const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(
+        () => Boolean(localStorage.getItem("token"))
+    );
 
     // Recuperar la sesión cuando se carga la aplicación
     useEffect(() => {
@@ -23,7 +25,6 @@ export function AuthProvider({ children }) {
         const token = localStorage.getItem("token");
 
         if (!token) {
-            setLoading(false);
             return;
         }
 
@@ -37,7 +38,7 @@ export function AuthProvider({ children }) {
                     setUser(data.user);
                 }
 
-            } catch (error) {
+            } catch {
                 localStorage.removeItem("token");
 
                 if (!cancelled) {
@@ -101,13 +102,19 @@ export function AuthProvider({ children }) {
         }
     };
 
+    // Actualizar el usuario en memoria (tras editar el perfil).
+    const updateUser = (nextUser) => {
+        setUser(nextUser);
+    };
+
     const value = {
         user,
         loading,
         isAuthenticated: Boolean(user),
         login,
         register,
-        logout
+        logout,
+        updateUser
     };
 
     return (
@@ -118,6 +125,7 @@ export function AuthProvider({ children }) {
 }
 
 // Hook para utilizar la autenticación
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
 
     const context = useContext(AuthContext);
