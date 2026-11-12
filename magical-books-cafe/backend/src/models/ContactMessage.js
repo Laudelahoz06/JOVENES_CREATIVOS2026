@@ -56,6 +56,20 @@ const contactMessageSchema = new mongoose.Schema(
             type: String,
             enum: ["nuevo", "leido"],
             default: "nuevo"
+        },
+
+        // Respuesta del equipo al mensaje. El cliente la ve en
+        // "Mis mensajes" si envió el mensaje con sesión iniciada.
+        reply: {
+            type: String,
+            trim: true,
+            maxlength: 2000,
+            default: null
+        },
+
+        repliedAt: {
+            type: Date,
+            default: null
         }
 
     },

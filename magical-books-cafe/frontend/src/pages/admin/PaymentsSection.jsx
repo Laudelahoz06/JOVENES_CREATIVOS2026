@@ -14,6 +14,7 @@ import {
 
 import {
     formatCOP,
+    formatDate,
     PAYMENT_METHOD_LABELS,
     PAYMENT_STATUS_LABELS
 } from "../../utils/format";
@@ -27,9 +28,34 @@ import {
 } from "./chartsConstants";
 import { ChartCard, KpiCard } from "./chartsCommon";
 
-// Pestaña "Pagos": cómo se está cobrando (Wompi vs local) y el estado
-// de los cobros de los últimos 6 meses.
-function PaymentsSection({ stats }) {
+// Chip de estado de pago reutilizado en las tablas de detalle.
+function PaymentChip({ status }) {
+    return (
+        <span className={`status-chip payment-${status}`}>
+            {PAYMENT_STATUS_LABELS[status] || status}
+        </span>
+    );
+}
+
+// Referencia del cobro (transacción Wompi o referencia manual),
+// truncada para no ensanchar la tabla; el tooltip muestra el valor
+// completo.
+function PaymentReference({ reference }) {
+    if (!reference) return <span className="admin-table-sub">—</span>;
+
+    return (
+        <span className="admin-table-sub" title={reference}>
+            {reference.length > 18
+                ? `${reference.slice(0, 18)}…`
+                : reference}
+        </span>
+    );
+}
+
+// Pestaña "Pagos": cómo se está cobrando (Wompi vs local), el estado
+// de los cobros de los últimos 6 meses y el detalle de los últimos
+// pagos y de lo que falta por cobrar.
+function PaymentsSection({ stats, onSelectTab }) {
     const paymentsByMethod = stats.paymentsByMethod.map((row) => ({
         name: PAYMENT_METHOD_LABELS[row.method] || row.method,
         value: row.count,
@@ -42,10 +68,13 @@ function PaymentsSection({ stats }) {
         status: row.status
     }));
 
+    const recentPayments = stats.recentPayments || [];
+    const pendingPayments = stats.pendingPayments || [];
+
     return (
         <div className="admin-overview">
 
-            <div className="kpi-grid">
+            <div className="kpi-grid kpi-grid-wide">
                 <KpiCard
                     label="Recaudado total"
                     value={formatCOP(stats.kpis.paidTotal)}
@@ -64,7 +93,22 @@ function PaymentsSection({ stats }) {
                 <KpiCard
                     label="Pagos pendientes"
                     value={stats.kpis.paymentsPending}
-                    hint="Por cobrar o verificar"
+                    hint="Por cobrar o reintentar"
+                />
+                <KpiCard
+                    label="Ticket promedio"
+                    value={formatCOP(stats.kpis.ticketPromedio || 0)}
+                    hint="Promedio por pedido pagado"
+                />
+                <KpiCard
+                    label="Tasa de aprobación"
+                    value={`${stats.kpis.approvalRate ?? 0}%`}
+                    hint="Pedidos pagados sobre el total"
+                />
+                <KpiCard
+                    label="Pagos rechazados"
+                    value={stats.kpis.paymentsRejected ?? 0}
+                    hint="Requieren reintento o cobro"
                 />
             </div>
 
@@ -225,6 +269,158 @@ function PaymentsSection({ stats }) {
                                 </Bar>
                             </BarChart>
                         </ResponsiveContainer>
+                    )}
+                </ChartCard>
+            </div>
+
+            <div className="payments-tables">
+                <ChartCard
+                    title="Últimos pagos"
+                    hint="Pedidos pagados (últimos 10)"
+                >
+                    {recentPayments.length === 0 ? (
+                        <p className="chart-empty">
+                            Todavía no hay pagos registrados.
+                        </p>
+                    ) : (
+                        <div className="admin-table-wrapper">
+                            <table className="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Cliente</th>
+                                        <th>Estado</th>
+                                        <th>Referencia</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {recentPayments.map((payment) => (
+                                        <tr key={payment.id}>
+                                            <td>
+                                                {formatDate(
+                                                    payment.paidAt ||
+                                                        payment.createdAt
+                                                )}
+                                            </td>
+
+                                            <td>
+                                                <strong>
+                                                    {payment.customer}
+                                                </strong>
+                                                {payment.email && (
+                                                    <span className="admin-table-sub">
+                                                        {payment.email}
+                                                    </span>
+                                                )}
+                                            </td>
+
+                                            <td className="admin-payment-cell">
+                                                <PaymentChip
+                                                    status={payment.status}
+                                                />
+                                                <span className="admin-table-sub">
+                                                    {PAYMENT_METHOD_LABELS[
+                                                        payment.method
+                                                    ] || "Sin método"}
+                                                </span>
+                                            </td>
+
+                                            <td>
+                                                <PaymentReference
+                                                    reference={
+                                                        payment.reference
+                                                    }
+                                                />
+                                            </td>
+
+                                            <td>
+                                                {formatCOP(payment.total)}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </ChartCard>
+
+                <ChartCard
+                    title="Pendientes por cobrar"
+                    hint="Cobrar o reintentar (últimos 10)"
+                >
+                    {pendingPayments.length === 0 ? (
+                        <p className="chart-empty">
+                            No hay pagos pendientes.
+                        </p>
+                    ) : (
+                        <>
+                            <div className="admin-table-wrapper">
+                                <table className="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Fecha</th>
+                                            <th>Cliente</th>
+                                            <th>Estado</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        {pendingPayments.map((payment) => (
+                                            <tr key={payment.id}>
+                                                <td>
+                                                    {formatDate(
+                                                        payment.createdAt
+                                                    )}
+                                                </td>
+
+                                                <td>
+                                                    <strong>
+                                                        {payment.customer}
+                                                    </strong>
+                                                    {payment.email && (
+                                                        <span className="admin-table-sub">
+                                                            {payment.email}
+                                                        </span>
+                                                    )}
+                                                </td>
+
+                                                <td className="admin-payment-cell">
+                                                    <PaymentChip
+                                                        status={
+                                                            payment.status
+                                                        }
+                                                    />
+                                                    <span className="admin-table-sub">
+                                                        {PAYMENT_METHOD_LABELS[
+                                                            payment.method
+                                                        ] || "Sin método"}
+                                                    </span>
+                                                </td>
+
+                                                <td>
+                                                    {formatCOP(
+                                                        payment.total
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div className="payments-card-footer">
+                                <button
+                                    type="button"
+                                    className="admin-link-button"
+                                    onClick={() => onSelectTab?.("pedidos")}
+                                >
+                                    Gestionar en Pedidos →
+                                </button>
+                            </div>
+                        </>
                     )}
                 </ChartCard>
             </div>

@@ -141,7 +141,11 @@ const main = async () => {
 
     // 5. Pedido del cliente y gestión de estados por el admin.
     res = await llamar("GET", "/products");
-    const producto = res.data?.products?.[0];
+    // Se elige un producto con stock: el primero del catálogo puede
+    // estar agotado por pedidos de prueba anteriores.
+    const producto =
+        (res.data?.products || []).find((p) => (p.stock || 0) >= 3) ||
+        res.data?.products?.[0];
 
     const stockInicial =
         (await Product.findById(producto._id).lean())?.stock;
@@ -257,6 +261,93 @@ const main = async () => {
         `status=${res.status}`
     );
 
+    // 6b. Respuestas a los mensajes y mensajes del cliente.
+    res = await llamar("POST", "/contact", {
+        auth: clienteToken,
+        body: {
+            name: "Cliente Humo",
+            email: clienteEmail,
+            subject: "Consulta con sesión",
+            message: "Mensaje vinculado a la cuenta del cliente.",
+            audience: "duenos"
+        }
+    });
+    const mensajeClienteId = res.data?.contact?.id || "";
+    verificado(
+        "POST /contact con sesión vincula el mensaje",
+        res.status === 201 && Boolean(mensajeClienteId),
+        `status=${res.status}`
+    );
+
+    res = await llamar("GET", "/contact/my", { auth: clienteToken });
+    const mio = (res.data?.messages || []).find(
+        (item) => String(item._id) === String(mensajeClienteId)
+    );
+    verificado(
+        "GET /contact/my (mensajes del cliente)",
+        res.status === 200 && Boolean(mio),
+        `status=${res.status}`
+    );
+
+    res = await llamar("GET", "/contact/unread-count", {
+        auth: adminToken
+    });
+    verificado(
+        "GET /contact/unread-count (admin)",
+        res.status === 200 && typeof res.data?.unread === "number",
+        `status=${res.status}`
+    );
+
+    res = await llamar("GET", "/contact/unread-count", {
+        auth: clienteToken
+    });
+    verificado(
+        "GET /contact/unread-count como cliente → 403",
+        res.status === 403,
+        `status=${res.status}`
+    );
+
+    res = await llamar("PATCH", `/contact/${mensajeClienteId}/reply`, {
+        auth: adminToken,
+        body: { reply: "Gracias por escribir, te atenderemos pronto." }
+    });
+    verificado(
+        "PATCH /contact/:id/reply guarda la respuesta",
+        res.status === 200 &&
+            Boolean(res.data?.contact?.reply) &&
+            res.data?.contact?.status === "leido",
+        `status=${res.status}`
+    );
+
+    res = await llamar("GET", "/contact/my", { auth: clienteToken });
+    const respondido = (res.data?.messages || []).find(
+        (item) => String(item._id) === String(mensajeClienteId)
+    );
+    verificado(
+        "El cliente ve la respuesta en GET /contact/my",
+        res.status === 200 && Boolean(respondido?.reply),
+        `status=${res.status}`
+    );
+
+    res = await llamar("PATCH", `/contact/${mensajeClienteId}/reply`, {
+        auth: clienteToken,
+        body: { reply: "Intento no autorizado de respuesta." }
+    });
+    verificado(
+        "PATCH /contact/:id/reply rechaza clientes (403)",
+        res.status === 403,
+        `status=${res.status}`
+    );
+
+    res = await llamar("DELETE", `/contact/${mensajeClienteId}`, {
+        auth: adminToken
+    });
+    verificado(
+        "DELETE limpia el mensaje respondido",
+        res.status === 200,
+        `status=${res.status}`
+    );
+
     // 7. Alquileres (bandeja admin).
     res = await llamar("GET", "/rentals", { auth: adminToken });
     verificado(
@@ -301,6 +392,16 @@ const main = async () => {
             typeof res.data?.stats?.kpis?.paidWompi === "number" &&
             typeof res.data?.stats?.kpis?.paidLocal === "number" &&
             typeof res.data?.stats?.kpis?.paymentsPending === "number",
+        `keys=${Object.keys(res.data?.stats || {}).join(",")}`
+    );
+
+    verificado(
+        "GET /admin/stats incluye detalle de pagos",
+        Array.isArray(res.data?.stats?.recentPayments) &&
+            Array.isArray(res.data?.stats?.pendingPayments) &&
+            typeof res.data?.stats?.kpis?.ticketPromedio === "number" &&
+            typeof res.data?.stats?.kpis?.approvalRate === "number" &&
+            typeof res.data?.stats?.kpis?.paymentsRejected === "number",
         `keys=${Object.keys(res.data?.stats || {}).join(",")}`
     );
 

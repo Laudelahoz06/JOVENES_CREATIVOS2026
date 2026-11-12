@@ -48,13 +48,55 @@ export const buildSignature = (reference, amountInCents) => {
         .digest("hex");
 };
 
+// El WAF/CloudFront de Wompi responde 403 "Request blocked" cuando
+// redirect-url apunta a hosts locales o de red privada (localhost,
+// 127.x, 10.x, 192.168.x, 172.16-31.x). En esos casos el parámetro se
+// omite: el checkout carga igual, pero sin retorno automático a
+// /pagos/resultado. Para probar el retorno completo usa una URL
+// pública (p. ej. ngrok) en WOMPI_REDIRECT_URL.
+const isLocalHostname = (hostname) => {
+    const host = String(hostname || "").toLowerCase();
+
+    return (
+        host === "localhost" ||
+        host === "[::1]" ||
+        host === "host.docker.internal" ||
+        /^127\./.test(host) ||
+        /^10\./.test(host) ||
+        /^192\.168\./.test(host) ||
+        /^172\.(1[6-9]|2\d|3[01])\./.test(host)
+    );
+};
+
+// URL completa a la que Wompi redirige tras el pago (?id=<transacción>).
+// Prioridad: WOMPI_REDIRECT_URL (pública) y si no, FRONTEND_URL + ruta.
+const buildRedirectUrl = () => {
+    const explicit = (process.env.WOMPI_REDIRECT_URL || "").trim();
+
+    if (explicit) return explicit.replace(/\/$/, "");
+
+    const base = (process.env.FRONTEND_URL || "http://localhost:5173")
+        .split(",")[0]
+        .trim()
+        .replace(/\/$/, "");
+
+    return `${base}/pagos/resultado`;
+};
+
 // Parámetros para el checkout alojado (formulario GET a checkout.wompi.co/p/).
 export const getCheckoutParams = ({ reference, amountInCents }) => {
     if (!isConfigured()) throw new WompiNotConfiguredError();
 
     const { publicKey } = getKeys();
 
-    const redirectUrl = `${(process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "")}/pagos/resultado`;
+    const redirectUrl = buildRedirectUrl();
+    let redirectHost = "";
+
+    try {
+        redirectHost = new URL(redirectUrl).hostname;
+    } catch {
+        redirectHost = "";
+    }
 
     return {
         checkoutUrl: CHECKOUT_URL,
@@ -63,7 +105,11 @@ export const getCheckoutParams = ({ reference, amountInCents }) => {
         amountInCents,
         reference,
         signature: buildSignature(reference, amountInCents),
-        redirectUrl
+        // null → el frontend no envía el campo (evita el 403 de CloudFront).
+        redirectUrl:
+            redirectHost && !isLocalHostname(redirectHost)
+                ? redirectUrl
+                : null
     };
 };
 

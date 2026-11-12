@@ -12,8 +12,9 @@ const OVERVIEW_TABS = [
 ];
 
 // Contenedor del dashboard admin: carga las estadísticas una sola vez
-// y las reparte en sub-pestañas por tema.
-function AdminOverview() {
+// y las reparte en sub-pestañas por tema. `onSelectTab` permite que una
+// sección (p. ej. Pagos) lleve al admin a otra pestaña del panel.
+function AdminOverview({ onSelectTab }) {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -82,7 +83,10 @@ function AdminOverview() {
                 )}
 
                 {activeTab === "pagos" && (
-                    <PaymentsSection stats={stats} />
+                    <PaymentsSection
+                        stats={stats}
+                        onSelectTab={onSelectTab}
+                    />
                 )}
             </div>
         </div>

@@ -8,13 +8,25 @@ const AUDIENCE_LABELS = {
     desarrolladores: "Desarrollo"
 };
 
-function AdminMessages() {
+function AdminMessages({ onUnreadChange }) {
     const [messages, setMessages] = useState([]);
     const [unread, setUnread] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [feedback, setFeedback] = useState(null);
     const [savingId, setSavingId] = useState(null);
+    const [replyingId, setReplyingId] = useState(null);
+    const [replyText, setReplyText] = useState("");
+
+    // Mantiene el contador local y avisa al panel (badge del menú).
+    // Estable: onUnreadChange es setState del padre.
+    const reportUnread = useCallback(
+        (value) => {
+            setUnread(value);
+            onUnreadChange?.(value);
+        },
+        [onUnreadChange]
+    );
 
     const loadMessages = useCallback(async () => {
         try {
@@ -24,14 +36,14 @@ function AdminMessages() {
             const data = await apiRequest("/contact");
 
             setMessages(data.messages || []);
-            setUnread(data.unread || 0);
+            reportUnread(data.unread || 0);
 
         } catch (err) {
             setError(err.message || "No se pudo cargar la bandeja.");
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [reportUnread]);
 
     useEffect(() => {
         const timer = window.setTimeout(loadMessages, 0);
@@ -56,7 +68,7 @@ function AdminMessages() {
                 )
             );
 
-            setUnread((previous) => Math.max(0, previous - 1));
+            reportUnread(Math.max(0, unread - 1));
 
         } catch (err) {
             setFeedback({
@@ -88,7 +100,7 @@ function AdminMessages() {
             );
 
             if (message.status === "nuevo") {
-                setUnread((previous) => Math.max(0, previous - 1));
+                reportUnread(Math.max(0, unread - 1));
             }
 
         } catch (err) {
@@ -99,6 +111,102 @@ function AdminMessages() {
         } finally {
             setSavingId(null);
         }
+    };
+
+    const handleOpenReply = (message) => {
+        setReplyingId(message._id);
+        setReplyText(message.reply || "");
+        setFeedback(null);
+    };
+
+    const handleCancelReply = () => {
+        setReplyingId(null);
+        setReplyText("");
+    };
+
+    const handleReply = async (message) => {
+        const text = replyText.trim();
+
+        if (text.length < 2) {
+            setFeedback({
+                type: "error",
+                message: "Escribe una respuesta (mínimo 2 caracteres)."
+            });
+            return;
+        }
+
+        setSavingId(message._id);
+        setFeedback(null);
+
+        try {
+            const data = await apiRequest(
+                `/contact/${message._id}/reply`,
+                {
+                    method: "PATCH",
+                    body: JSON.stringify({ reply: text })
+                }
+            );
+
+            setMessages((previous) =>
+                previous.map((item) =>
+                    item._id === message._id
+                        ? { ...item, ...data.contact }
+                        : item
+                )
+            );
+
+            if (message.status === "nuevo") {
+                reportUnread(Math.max(0, unread - 1));
+            }
+
+            setReplyingId(null);
+            setReplyText("");
+            setFeedback({
+                type: "success",
+                message:
+                    "Respuesta guardada. El cliente la verá en su cuenta."
+            });
+
+        } catch (err) {
+            setFeedback({
+                type: "error",
+                message: err.message || "No se pudo enviar la respuesta."
+            });
+        } finally {
+            setSavingId(null);
+        }
+    };
+
+    // Abre el cliente de correo con el mensaje (y la respuesta, si
+    // existe) listo para reenviarlo al equipo de desarrollo.
+    const handleForward = (message) => {
+        const devEmail = (import.meta.env.VITE_DEV_EMAIL || "").trim();
+
+        const lines = [
+            "Mensaje reenviado desde el panel de Magical Books Café.",
+            "",
+            `De: ${message.name} <${message.email}>`,
+            `Destinatario original: ${
+                AUDIENCE_LABELS[message.audience] ||
+                message.audience ||
+                "General"
+            }`,
+            `Fecha: ${formatDate(message.createdAt)}`,
+            `Asunto: ${message.subject}`,
+            "",
+            message.message
+        ];
+
+        if (message.reply) {
+            lines.push("", "Respuesta del equipo:", message.reply);
+        }
+
+        const subject = `Reenvío: ${message.subject}`;
+
+        window.location.href =
+            `mailto:${devEmail}` +
+            `?subject=${encodeURIComponent(subject)}` +
+            `&body=${encodeURIComponent(lines.join("\n"))}`;
     };
 
     return (
@@ -170,6 +278,64 @@ function AdminMessages() {
 
                         <p className="message-body">{message.message}</p>
 
+                        {message.reply && (
+                            <div className="message-reply">
+                                <strong>
+                                    Respuesta del equipo ·{" "}
+                                    {formatDate(message.repliedAt)}
+                                </strong>
+                                <p>{message.reply}</p>
+                            </div>
+                        )}
+
+                        {replyingId === message._id && (
+                            <div className="message-reply-form">
+                                <label
+                                    htmlFor={`reply-${message._id}`}
+                                >
+                                    Respuesta para {message.name}
+                                </label>
+                                <textarea
+                                    id={`reply-${message._id}`}
+                                    rows={4}
+                                    maxLength={2000}
+                                    value={replyText}
+                                    onChange={(event) =>
+                                        setReplyText(event.target.value)
+                                    }
+                                    placeholder="Escribe la respuesta que verá el cliente..."
+                                />
+                                <div className="field-meta">
+                                    <small className="field-counter">
+                                        {replyText.length}/2000
+                                    </small>
+                                </div>
+                                <div className="message-actions">
+                                    <button
+                                        type="button"
+                                        className="btn-primary"
+                                        disabled={
+                                            savingId === message._id
+                                        }
+                                        onClick={() =>
+                                            handleReply(message)
+                                        }
+                                    >
+                                        {savingId === message._id
+                                            ? "Enviando..."
+                                            : "Enviar respuesta"}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="admin-link-button"
+                                        onClick={handleCancelReply}
+                                    >
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
                         <footer>
                             <span
                                 className={`status-chip status-${
@@ -196,6 +362,27 @@ function AdminMessages() {
                                         Marcar leído
                                     </button>
                                 )}
+
+                                <button
+                                    type="button"
+                                    className="admin-link-button"
+                                    disabled={savingId === message._id}
+                                    onClick={() =>
+                                        handleOpenReply(message)
+                                    }
+                                >
+                                    {message.reply
+                                        ? "Responder de nuevo"
+                                        : "Responder"}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className="admin-link-button"
+                                    onClick={() => handleForward(message)}
+                                >
+                                    Reenviar a desarrolladores
+                                </button>
 
                                 <button
                                     type="button"

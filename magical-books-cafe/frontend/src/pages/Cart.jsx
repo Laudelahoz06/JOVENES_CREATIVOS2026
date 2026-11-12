@@ -36,9 +36,14 @@ function Cart() {
             currency: checkout.currency,
             "amount-in-cents": checkout.amountInCents,
             reference: checkout.reference,
-            "signature:integrity": checkout.signature,
-            "redirect-url": checkout.redirectUrl
+            "signature:integrity": checkout.signature
         };
+
+        // redirect-url es opcional: si el backend lo omite (Wompi
+        // bloquea con 403 los destinos locales) no se envía el campo.
+        if (checkout.redirectUrl) {
+            fields["redirect-url"] = checkout.redirectUrl;
+        }
 
         Object.entries(fields).forEach(([name, value]) => {
             const input = document.createElement("input");

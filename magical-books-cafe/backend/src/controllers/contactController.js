@@ -20,7 +20,9 @@ const checkValidation = (req, res) => {
     return true;
 };
 
-// POST /api/contact — público (dueños o desarrolladores).
+// POST /api/contact — público (dueños o desarrolladores). Con
+// optionalAuth, si el cliente envía su token el mensaje queda
+// vinculado a su cuenta para verlo en "Mis mensajes".
 export const createMessage = async (req, res, next) => {
     try {
         if (!checkValidation(req, res)) return;
@@ -122,6 +124,82 @@ export const deleteMessage = async (req, res, next) => {
         return res.status(200).json({
             success: true,
             message: "Mensaje eliminado."
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+// PATCH /api/contact/:id/reply — responde un mensaje (admin).
+// La respuesta queda guardada en el documento y el mensaje pasa a
+// "leido"; el cliente la ve en GET /contact/my.
+export const replyMessage = async (req, res, next) => {
+    try {
+        if (!checkValidation(req, res)) return;
+
+        const reply = req.body.reply.trim();
+
+        const updated = await ContactMessage.findByIdAndUpdate(
+            req.params.id,
+            {
+                reply,
+                repliedAt: new Date(),
+                status: "leido"
+            },
+            { new: true }
+        );
+
+        if (!updated) {
+            return res.status(404).json({
+                success: false,
+                message: "El mensaje no existe."
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Respuesta guardada. El cliente podrá verla en su cuenta.",
+            contact: updated
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+// GET /api/contact/my — mensajes que la cuenta envió con sesión
+// iniciada, con las respuestas del equipo (cliente autenticado).
+export const listMyMessages = async (req, res, next) => {
+    try {
+        const messages = await ContactMessage.find({
+            user: req.user._id
+        })
+            .sort({ createdAt: -1 })
+            .limit(50)
+            .lean();
+
+        return res.status(200).json({
+            success: true,
+            messages
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+// GET /api/contact/unread-count — contador liviano para el badge
+// del menú lateral del panel (admin).
+export const unreadCount = async (req, res, next) => {
+    try {
+        const unread = await ContactMessage.countDocuments({
+            status: "nuevo"
+        });
+
+        return res.status(200).json({
+            success: true,
+            unread
         });
 
     } catch (error) {

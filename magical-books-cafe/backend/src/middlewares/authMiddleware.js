@@ -57,3 +57,35 @@ export const authenticate = async (req, res, next) => {
         next(error);
     }
 };
+
+// Autenticación opcional: si viene un token válido se adjunta
+// req.user; si no viene (o es inválido) la petición continúa como
+// anónima. Útil en endpoints públicos que se benefician de saber
+// quién es, como POST /contact (vincula el mensaje a la cuenta).
+export const optionalAuth = async (req, res, next) => {
+    try {
+        const authHeader = req.headers.authorization;
+
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return next();
+        }
+
+        const token = authHeader.split(" ")[1];
+
+        if (!token) return next();
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded.sub)
+            .select("+revokedTokens");
+
+        if (!user || !user.active) return next();
+        if (user.revokedTokens.includes(token)) return next();
+
+        req.user = user;
+
+        next();
+    } catch {
+        // Token ausente, expirado o inválido: seguimos como anónimos.
+        next();
+    }
+};

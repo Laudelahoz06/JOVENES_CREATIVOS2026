@@ -50,6 +50,7 @@ function AdminDashboard() {
     const [activeTab, setActiveTab] = useState("resumen");
     const [gestionOpen, setGestionOpen] = useState(true);
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [unreadMessages, setUnreadMessages] = useState(0);
 
     useEffect(() => {
         const verifyAccess = async () => {
@@ -62,6 +63,28 @@ function AdminDashboard() {
         };
 
         verifyAccess();
+    }, []);
+
+    // Badge de mensajes sin leer en el menú lateral. Se actualiza al
+    // cargar el panel y cada vez que AdminMessages reporta un cambio.
+    useEffect(() => {
+        let cancelled = false;
+
+        const loadUnread = async () => {
+            try {
+                const data = await apiRequest("/contact/unread-count");
+
+                if (!cancelled) setUnreadMessages(data.unread || 0);
+            } catch {
+                // El badge es decorativo: si falla, no bloquea el panel.
+            }
+        };
+
+        loadUnread();
+
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
     const selectTab = (key) => {
@@ -156,6 +179,15 @@ function AdminDashboard() {
             >
                 <span className="admin-tree-icon">{item.icon}</span>
                 <span>{item.label}</span>
+
+                {item.key === "mensajes" && unreadMessages > 0 && (
+                    <span
+                        className="admin-tree-badge"
+                        aria-label={`${unreadMessages} mensajes sin leer`}
+                    >
+                        {unreadMessages > 99 ? "99+" : unreadMessages}
+                    </span>
+                )}
             </button>
         );
     };
@@ -245,13 +277,17 @@ function AdminDashboard() {
                                 </p>
                             }
                         >
-                            <AdminOverview />
+                            <AdminOverview onSelectTab={selectTab} />
                         </Suspense>
                     )}
                     {activeTab === "productos" && <AdminProducts />}
                     {activeTab === "pedidos" && <AdminOrders />}
                     {activeTab === "alquileres" && <AdminRentals />}
-                    {activeTab === "mensajes" && <AdminMessages />}
+                    {activeTab === "mensajes" && (
+                        <AdminMessages
+                            onUnreadChange={setUnreadMessages}
+                        />
+                    )}
                     {activeTab === "usuarios" && <AdminUsers />}
                 </div>
 

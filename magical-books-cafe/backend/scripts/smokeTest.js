@@ -155,7 +155,11 @@ const main = async () => {
 
     // 7. Pedido (carrito)
     res = await llamar("GET", "/products");
-    const producto = res.data?.products?.[0];
+    // Se elige un producto con stock: el primero del catálogo puede
+    // estar agotado por pedidos de prueba anteriores.
+    const producto =
+        (res.data?.products || []).find((p) => (p.stock || 0) >= 2) ||
+        res.data?.products?.[0];
 
     res = await llamar("GET", `/products/${producto._id}`);
     const stockInicial = res.data?.product?.stock;

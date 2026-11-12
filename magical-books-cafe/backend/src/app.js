@@ -20,9 +20,16 @@ const app = express();
 app.use(helmet());
 
 // 2. Configuración de comunicación con React.
+// FRONTEND_URL admite varios orígenes separados por coma (p. ej.
+// localhost:5173 y un dominio ngrok para probar el retorno de Wompi).
+const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:5173")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
 app.use(
     cors({
-        origin: process.env.FRONTEND_URL,
+        origin: allowedOrigins,
         methods: ["GET", "POST", "PATCH", "DELETE"],
         allowedHeaders: ["Content-Type", "Authorization"],
         credentials: true

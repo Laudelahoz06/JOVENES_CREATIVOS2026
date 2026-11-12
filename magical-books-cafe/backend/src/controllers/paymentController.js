@@ -135,17 +135,33 @@ export const verifyWompiPayment = async (req, res, next) => {
         // La orden se busca por transacción o por la referencia usada
         // ("ORDER-{id}-{n}") y siempre debe pertenecer al usuario.
         let order = null;
+        let transaction = null;
 
         if (transactionId) {
             order = await Order.findOne({
                 wompiTransactionId: String(transactionId),
                 user: req.user._id
             });
+
+            // Wompi solo agrega ?id= al volver (no envía reference);
+            // la referencia se lee de la propia transacción para poder
+            // hallar el pedido. Un fallo aquí se reintenta más abajo.
+            try {
+                transaction = await getTransaction(String(transactionId));
+            } catch {
+                transaction = null;
+            }
         }
 
-        if (!order && reference) {
+        const effectiveReference =
+            reference ||
+            (typeof transaction?.reference === "string"
+                ? transaction.reference
+                : null);
+
+        if (!order && effectiveReference) {
             const match = /^ORDER-([0-9a-fA-F]{24})-\d+$/.exec(
-                String(reference)
+                String(effectiveReference)
             );
 
             if (match) {
@@ -184,9 +200,11 @@ export const verifyWompiPayment = async (req, res, next) => {
             });
         }
 
-        const transaction = await getTransaction(
-            transactionId || order.wompiTransactionId
-        );
+        if (!transaction) {
+            transaction = await getTransaction(
+                transactionId || order.wompiTransactionId
+            );
+        }
 
         if (!transaction) {
             return res.status(404).json({
@@ -220,6 +238,15 @@ export const verifyWompiPayment = async (req, res, next) => {
     } catch (error) {
         if (error instanceof WompiNotConfiguredError) {
             return res.status(503).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        // Errores de la API de Wompi (404 transacción, 502 red):
+        // se devuelven con su estado real en vez de un 500 genérico.
+        if (error.statusCode) {
+            return res.status(error.statusCode).json({
                 success: false,
                 message: error.message
             });

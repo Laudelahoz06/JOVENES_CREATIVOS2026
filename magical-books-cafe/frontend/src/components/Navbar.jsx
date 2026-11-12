@@ -50,6 +50,10 @@ function Navbar() {
                         <NavLink to="/mis-alquileres">Mis alquileres</NavLink>
                     )}
 
+                    {isAuthenticated && (
+                        <NavLink to="/mis-mensajes">Mis mensajes</NavLink>
+                    )}
+
                 </nav>
             )}
 

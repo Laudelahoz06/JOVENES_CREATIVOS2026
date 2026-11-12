@@ -55,8 +55,19 @@ const serieCompleta = (meses, rows, campo = "total") => {
 };
 
 // GET /api/admin/stats — indicadores y series para el dashboard admin.
+// Atlas (M0) tarda ~850 ms en ejecutar las 20 consultas del panel; una
+// caché corta en memoria hace instantáneas las visitas repetidas (los
+// datos del dashboard no necesitan tiempo real).
+let statsCache = null;
+let statsCacheAt = 0;
+const STATS_CACHE_TTL_MS = 30_000;
+
 export const getAdminStats = async (req, res, next) => {
     try {
+        if (statsCache && Date.now() - statsCacheAt < STATS_CACHE_TTL_MS) {
+            return res.status(200).json(statsCache);
+        }
+
         const desde6Meses = new Date();
         desde6Meses.setDate(1);
         desde6Meses.setHours(0, 0, 0, 0);
@@ -77,7 +88,15 @@ export const getAdminStats = async (req, res, next) => {
             productosTipo,
             pagosMetodo,
             pagosEstado,
-            pagosMes
+            pagosMes,
+            pagosPendientes,
+            alquileresAprobados,
+            inventario,
+            rentalsCount,
+            usersCount,
+            pagosEstadoTodo,
+            ultimosPagos,
+            porCobrar
         ] = await Promise.all([
             // ---- KPIs generales (ventas = pedidos realmente pagados) ----
             Order.aggregate([
@@ -295,7 +314,72 @@ export const getAdminStats = async (req, res, next) => {
                     }
                 },
                 { $sort: { "_id.month": 1 } }
-            ])
+            ]),
+            // ---- Pagos pendientes (cobro en caja, online sin cerrar
+            // o rechazados que hay que reintentar) ----
+            Order.countDocuments({
+                status: { $ne: "cancelado" },
+                paymentStatus: { $in: [null, "pending", "rejected"] },
+                paymentMethod: { $ne: null }
+            }),
+            // ---- Ingresos por alquileres: solo pagos aprobados ----
+            Rental.aggregate([
+                { $match: { paymentStatus: "approved" } },
+                { $group: { _id: null, total: { $sum: "$total" } } }
+            ]),
+            // ---- Inventario activo (productos y unidades en stock) ----
+            Product.aggregate([
+                { $match: { active: true, type: { $ne: "service" } } },
+                {
+                    $group: {
+                        _id: null,
+                        products: { $sum: 1 },
+                        stock: { $sum: "$stock" }
+                    }
+                }
+            ]),
+            // ---- Conteos simples ----
+            Rental.countDocuments(),
+            User.countDocuments(),
+            // ---- Estado de los pagos (histórico, sin cancelados) ----
+            Order.aggregate([
+                {
+                    $match: { status: { $ne: "cancelado" } }
+                },
+                {
+                    $group: {
+                        _id: { $ifNull: ["$paymentStatus", "approved"] },
+                        count: { $sum: 1 }
+                    }
+                }
+            ]),
+            // ---- Últimos pagos aprobados (tabla de detalle) ----
+            Order.find({
+                paymentStatus: PAGO_APROBADO,
+                status: { $ne: "cancelado" }
+            })
+                .select(
+                    "total status paymentMethod paymentStatus paidAt " +
+                        "createdAt wompiTransactionId paymentReference user"
+                )
+                .sort({ createdAt: -1 })
+                .limit(10)
+                .populate("user", "name email")
+                .lean(),
+            // ---- Pendientes por cobrar (tabla de detalle) ----
+            Order.find({
+                status: { $ne: "cancelado" },
+                paymentStatus: { $in: [null, "pending", "rejected"] },
+                paymentMethod: { $ne: null }
+            })
+                .select(
+                    "total status paymentMethod paymentStatus paidAt " +
+                        "createdAt wompiTransactionId paymentReference user"
+                )
+                .sort({ createdAt: -1 })
+                .limit(10)
+                .populate("user", "name email")
+                .lean()
         ]);
 
         const totalVentas = kpis[0]?.total || 0;
@@ -304,28 +388,30 @@ export const getAdminStats = async (req, res, next) => {
         // ---- Derivados de pagos ----
         const pagadoWompi = pagosMetodo.find((row) => row._id === "wompi");
         const pagadoLocal = pagosMetodo.find((row) => row._id === "local");
-        const pagosPendientes = await Order.countDocuments({
-            status: { $ne: "cancelado" },
-            paymentStatus: { $in: [null, "pending"] },
-            paymentMethod: { $ne: null }
+
+        // Ticket promedio y tasa de aprobación (histórico de pedidos
+        // no cancelados; los pedidos antiguos sin paymentStatus cuentan
+        // como aprobados, igual que en el resto del dashboard).
+        const pagosPorEstado = Object.fromEntries(
+            pagosEstadoTodo.map((row) => [row._id, row.count])
+        );
+        const intentosPago =
+            (pagosPorEstado.approved || 0) +
+            (pagosPorEstado.pending || 0) +
+            (pagosPorEstado.rejected || 0);
+
+        const mapearPedidoPago = (order, estadoPorDefecto) => ({
+            id: order._id,
+            total: order.total,
+            method: order.paymentMethod,
+            status: order.paymentStatus || estadoPorDefecto,
+            reference:
+                order.wompiTransactionId || order.paymentReference || null,
+            paidAt: order.paidAt,
+            createdAt: order.createdAt,
+            customer: order.user?.name || "Cliente",
+            email: order.user?.email || ""
         });
-
-        // Ingresos por alquileres: solo pagos aprobados.
-        const alquileresAprobados = await Rental.aggregate([
-            { $match: { paymentStatus: "approved" } },
-            { $group: { _id: null, total: { $sum: "$total" } } }
-        ]);
-
-        const inventario = await Product.aggregate([
-            { $match: { active: true, type: { $ne: "service" } } },
-            {
-                $group: {
-                    _id: null,
-                    products: { $sum: 1 },
-                    stock: { $sum: "$stock" }
-                }
-            }
-        ]);
 
         const meses = ultimosMeses(6);
 
@@ -333,7 +419,7 @@ export const getAdminStats = async (req, res, next) => {
             mensajes.map((row) => [row._id, row.count])
         );
 
-        return res.status(200).json({
+        const payload = {
             success: true,
             stats: {
                 generatedAt: new Date().toISOString(),
@@ -342,8 +428,8 @@ export const getAdminStats = async (req, res, next) => {
                     salesTotal: totalVentas,
                     salesCount: totalPedidos,
                     rentalsTotal: alquileresAprobados[0]?.total || 0,
-                    rentalsCount: await Rental.countDocuments(),
-                    usersCount: await User.countDocuments(),
+                    rentalsCount,
+                    usersCount,
                     productsCount: inventario[0]?.products || 0,
                     stockTotal: inventario[0]?.stock || 0,
                     messagesNew: mensajesMap.nuevo || 0,
@@ -353,7 +439,20 @@ export const getAdminStats = async (req, res, next) => {
                         (pagadoWompi?.total || 0) + (pagadoLocal?.total || 0),
                     paidWompi: pagadoWompi?.total || 0,
                     paidLocal: pagadoLocal?.total || 0,
-                    paymentsPending: pagosPendientes
+                    paymentsPending: pagosPendientes,
+                    ticketPromedio:
+                        totalPedidos > 0
+                            ? Math.round(totalVentas / totalPedidos)
+                            : 0,
+                    approvalRate:
+                        intentosPago > 0
+                            ? Math.round(
+                                  ((pagosPorEstado.approved || 0) /
+                                      intentosPago) *
+                                      100
+                              )
+                            : 0,
+                    paymentsRejected: pagosPorEstado.rejected || 0
                 },
 
                 salesByMonth: serieCompleta(meses, ventasMes),
@@ -418,9 +517,22 @@ export const getAdminStats = async (req, res, next) => {
                             0
                         )
                     };
-                })
+                }),
+
+                // ---- Detalle de pagos (tablas) ----
+                recentPayments: ultimosPagos.map((order) =>
+                    mapearPedidoPago(order, "approved")
+                ),
+                pendingPayments: porCobrar.map((order) =>
+                    mapearPedidoPago(order, "pending")
+                )
             }
-        });
+        };
+
+        statsCache = payload;
+        statsCacheAt = Date.now();
+
+        return res.status(200).json(payload);
 
     } catch (error) {
         next(error);

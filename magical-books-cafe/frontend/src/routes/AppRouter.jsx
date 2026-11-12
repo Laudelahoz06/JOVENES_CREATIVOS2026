@@ -12,6 +12,7 @@ import Cart from "../pages/Cart";
 import PaymentResult from "../pages/PaymentResult";
 import Profile from "../pages/Profile";
 import MyRentals from "../pages/MyRentals";
+import MyMessages from "../pages/MyMessages";
 import NotFound from "../pages/NotFound";
 
 import ProtectedRoute from "../components/common/ProtectedRoute";
@@ -63,6 +64,15 @@ function AppRouter() {
                         element={
                             <ProtectedRoute>
                                 <MyRentals />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/mis-mensajes"
+                        element={
+                            <ProtectedRoute>
+                                <MyMessages />
                             </ProtectedRoute>
                         }
                     />
