@@ -1,11 +1,11 @@
 # Notas de avance — Magical Books Café
 
-> Última actualización: 2026-11-12 — navbar con botón "Cerrar sesión" estilo admin + **stock descontado/restaurado en pedidos** (tests 29 + 27 OK); cambios git pendientes de autorización
+> Última actualización: 2026-11-12 — navbar con botón "Cerrar sesión" estilo admin + **stock descontado/restaurado en pedidos** + rate-limit adaptado a dev; **push `5c54e79` hecho con la cuenta Laudelahoz06 vía `gh`**
 >
 > ⚠️ **Regla del equipo:** **Solicitar autorización antes de cualquier cambio en git** (commit, push, stash, reset, etc.). No se toca git sin que el usuario lo apruebe.
 
 ## Estado general
-- **Rama:** `main`, sincronizada con `origin/main` (`Laudelahoz06/JOVENES_CREATIVOS2026`). **Último push (2026-11-11):** commit `3e6224a` "pagos wompi y en local, graficas de pagos, dashboard admin con sidebar y avances generales" (79 archivos, autor Laura de la Hoz) — incluyó todo el trabajo acumulado (pagos, dashboard, docs, NOTAS.md, .zip). **Credencial git activa:** cuenta `Laudelahoz06` (además quedan `jadies2024` y `JA10S` en la CLI de gh). **Regla:** pedir autorización antes de commitear/pushear de nuevo.
+- **Rama:** `main`, sincronizada con `origin/main` (`Laudelahoz06/JOVENES_CREATIVOS2026`). **Último push (2026-11-12):** commit `5c54e79` "inventario descontado al crear pedido y devuelto al cancelar, navbar con cerrar sesion estilo admin, rate-limit ampliado en desarrollo" (9 archivos) + esta nota. Commit anterior: `3e6224a` (pagos, dashboard, docs). **Credencial git:** la cuenta activa de `gh` es **Laudelahoz06** (`gh auth switch --user Laudelahoz06`); el helper local del repo quedó en `!gh auth git-credential` — el push con credenciales de `jadies2024` da **403** (sin permiso). **Regla:** pedir autorización antes de commitear/pushear.
 - **Stack:** Node.js + Express 5 + Mongoose (backend) · React 19 + Vite (frontend) · JavaScript puro (sin TS)
 - **Proveedor cloud:** **MongoDB Atlas en uso** (cluster `cluster0.ziemfyj`, DB `magical_books_cafe`), IP `0.0.0.0/0` (si tu IP pública cambia y no usas 0.0.0.0/0, el backend no conecta). Puerto del backend: **5000**
 - **Servidores (2026-11-10):** backend `http://localhost:5000` · frontend `http://localhost:5173` (Vite). Si el backend "no responde", revisar con `Get-NetTCPConnection -LocalPort 5000 -State Listen` quién escucha y relanzar `node src/server.js`.
