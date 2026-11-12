@@ -16,9 +16,11 @@ import rateLimit from "express-rate-limit";
 
 const router = express.Router();
 
+// En desarrollo se sube el límite para que registrar/probar no bloquee
+// la IP; en producción sigue en 10 intentos por 15 minutos.
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    limit: 10,
+    limit: process.env.NODE_ENV === "production" ? 10 : 500,
     standardHeaders: "draft-7",
     legacyHeaders: false,
     message: {

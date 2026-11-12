@@ -32,9 +32,11 @@ app.use(
 app.use(express.json({ limit: "1mb" }));
 
 // 4. Limitar solicitudes para prevenir abusos.
+// En desarrollo los límites se suben para que las pruebas y la navegación
+// local no bloqueen la IP; en producción se mantiene la protección estricta.
 const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    limit: 100,
+    limit: process.env.NODE_ENV === "production" ? 100 : 10000,
     standardHeaders: "draft-7",
     legacyHeaders: false
 });

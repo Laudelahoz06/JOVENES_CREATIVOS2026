@@ -108,6 +108,14 @@ const orderSchema = new mongoose.Schema(
         paymentReference: {
             type: String,
             default: null
+        },
+
+        // Indica si el stock de los items ya fue descontado al crear el
+        // pedido. Los pedidos antiguos (anteriores a este control) quedan
+        // en false: al cancelarlos NO se devuelve stock que nunca se descontó.
+        stockReserved: {
+            type: Boolean,
+            default: false
         }
 
     },

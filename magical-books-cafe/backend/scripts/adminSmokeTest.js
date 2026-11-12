@@ -8,6 +8,7 @@ import dns from "dns";
 import mongoose from "mongoose";
 
 import User from "../src/models/User.js";
+import Product from "../src/models/Product.js";
 
 // Mismo fallback DNS que src/config/database.js (el router local no
 // responde consultas TXT que Atlas necesita para mongodb+srv).
@@ -142,6 +143,9 @@ const main = async () => {
     res = await llamar("GET", "/products");
     const producto = res.data?.products?.[0];
 
+    const stockInicial =
+        (await Product.findById(producto._id).lean())?.stock;
+
     res = await llamar("POST", "/orders", {
         auth: clienteToken,
         body: {
@@ -154,6 +158,14 @@ const main = async () => {
         "POST /orders (cliente)",
         res.status === 201 && Boolean(pedidoId),
         `status=${res.status}`
+    );
+
+    const stockTrasPedido =
+        (await Product.findById(producto._id).lean())?.stock;
+    verificado(
+        "POST /orders descuenta 2 unidades de stock",
+        stockTrasPedido === stockInicial - 2,
+        `(esperado ${stockInicial - 2}, obtenido ${stockTrasPedido})`
     );
 
     res = await llamar("GET", "/orders", { auth: adminToken });
@@ -297,6 +309,26 @@ const main = async () => {
         "GET /admin/stats como cliente → 403",
         res.status === 403,
         `status=${res.status}`
+    );
+
+    // 10. Cancelación por el admin: devuelve el stock reservado al
+    // inventario (y deja la prueba con stock neto 0).
+    res = await llamar("PATCH", `/orders/${pedidoId}/status`, {
+        auth: adminToken,
+        body: { status: "cancelado" }
+    });
+    verificado(
+        "PATCH /orders/:id/status → cancelado",
+        res.status === 200 && res.data?.order?.status === "cancelado",
+        `status=${res.status}`
+    );
+
+    const stockFinal =
+        (await Product.findById(producto._id).lean())?.stock;
+    verificado(
+        "Cancelar el pedido devuelve las 2 unidades de stock",
+        stockFinal === stockInicial,
+        `(esperado ${stockInicial}, obtenido ${stockFinal})`
     );
 
     console.log(`\nResultado: ${pasados} ok, ${fallidos} fallidas.`);

@@ -157,6 +157,9 @@ const main = async () => {
     res = await llamar("GET", "/products");
     const producto = res.data?.products?.[0];
 
+    res = await llamar("GET", `/products/${producto._id}`);
+    const stockInicial = res.data?.product?.stock;
+
     res = await llamar("POST", "/orders", {
         auth: token,
         body: {
@@ -167,6 +170,15 @@ const main = async () => {
     verificado(
         "POST /orders",
         res.status === 201 && typeof res.data?.order?.total === "number"
+    );
+
+    res = await llamar("GET", `/products/${producto._id}`);
+    verificado(
+        "POST /orders descuenta el stock",
+        res.data?.product?.stock === stockInicial - 1,
+        `(esperado ${stockInicial - 1}, obtenido ${
+            res.data?.product?.stock
+        })`
     );
 
     res = await llamar("GET", "/orders/mine", { auth: token });
@@ -187,6 +199,15 @@ const main = async () => {
         verificado(
             "PATCH /orders/:id/cancel",
             res.status === 200 && res.data?.order?.status === "cancelado"
+        );
+
+        res = await llamar("GET", `/products/${producto._id}`);
+        verificado(
+            "Cancelar el pedido devuelve el stock",
+            res.data?.product?.stock === stockInicial,
+            `(esperado ${stockInicial}, obtenido ${
+                res.data?.product?.stock
+            })`
         );
 
         res = await llamar("PATCH", `/orders/${mio._id}/cancel`, {
@@ -277,6 +298,25 @@ const main = async () => {
     verificado(
         "PATCH /orders/:id/pay-local rechaza clientes (403)",
         res.status === 403
+    );
+
+    // El pedido de pago sigue pendiente: se cancela al final para que
+    // la prueba deje el stock neto en 0 en cada corrida.
+    res = await llamar("PATCH", `/orders/${pedidoPago}/cancel`, {
+        auth: token
+    });
+    verificado(
+        "Cancelar el pedido de pago (stock neto 0)",
+        res.status === 200 && res.data?.order?.status === "cancelado"
+    );
+
+    res = await llamar("GET", `/products/${producto._id}`);
+    verificado(
+        "Stock final restaurado al valor inicial",
+        res.data?.product?.stock === stockInicial,
+        `(esperado ${stockInicial}, obtenido ${
+            res.data?.product?.stock
+        })`
     );
 
     // 8. Seguridad: rutas admin sin rol admin deben dar 403

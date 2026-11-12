@@ -89,9 +89,10 @@ function Navbar() {
 
                         <button
                             type="button"
-                            className="btn-login"
+                            className="btn-logout"
                             onClick={handleLogout}
                         >
+                            <span aria-hidden="true">⏻</span>
                             Cerrar sesión
                         </button>
                     </>

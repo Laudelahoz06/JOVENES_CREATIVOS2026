@@ -1,11 +1,11 @@
 # Notas de avance — Magical Books Café
 
-> Última actualización: 2026-11-11 — pagos Wompi + pagos en local + gráficas de pagos; guardado local, **sin commit ni push**
+> Última actualización: 2026-11-12 — navbar con botón "Cerrar sesión" estilo admin + **stock descontado/restaurado en pedidos** (tests 29 + 27 OK); cambios git pendientes de autorización
 >
-> ⚠️ **Regla del equipo:** NO hacer commit de los cambios realizados en esta máquina.
+> ⚠️ **Regla del equipo:** **Solicitar autorización antes de cualquier cambio en git** (commit, push, stash, reset, etc.). No se toca git sin que el usuario lo apruebe.
 
 ## Estado general
-- **Rama:** `main`, sincronizada con `origin/main` — **últimos commits bajados:** `5babd6d` (inicio de sesión, crear cuenta y nav dinámico) y `9f157fc` (avance React). **Nada de nuestro trabajo se sube al Git (regla del equipo).**
+- **Rama:** `main`, sincronizada con `origin/main` (`Laudelahoz06/JOVENES_CREATIVOS2026`). **Último push (2026-11-11):** commit `3e6224a` "pagos wompi y en local, graficas de pagos, dashboard admin con sidebar y avances generales" (79 archivos, autor Laura de la Hoz) — incluyó todo el trabajo acumulado (pagos, dashboard, docs, NOTAS.md, .zip). **Credencial git activa:** cuenta `Laudelahoz06` (además quedan `jadies2024` y `JA10S` en la CLI de gh). **Regla:** pedir autorización antes de commitear/pushear de nuevo.
 - **Stack:** Node.js + Express 5 + Mongoose (backend) · React 19 + Vite (frontend) · JavaScript puro (sin TS)
 - **Proveedor cloud:** **MongoDB Atlas en uso** (cluster `cluster0.ziemfyj`, DB `magical_books_cafe`), IP `0.0.0.0/0` (si tu IP pública cambia y no usas 0.0.0.0/0, el backend no conecta). Puerto del backend: **5000**
 - **Servidores (2026-11-10):** backend `http://localhost:5000` · frontend `http://localhost:5173` (Vite). Si el backend "no responde", revisar con `Get-NetTCPConnection -LocalPort 5000 -State Listen` quién escucha y relanzar `node src/server.js`.
@@ -17,7 +17,7 @@
 ## Qué está hecho
 - **Backend completo (2026-11-10):** auth (register/login/profile/logout + `PATCH /auth/profile` con preferencias), CRUD productos admin, inventario con historial, **contacto** (`/api/contact` con bandeja admin), **pedidos** (`/api/orders` con revalidación de precios/stock), **alquileres** (`/api/rentals` con `fisico|digital|kindle|local_pc`), **IA** (`/api/ai/assistant` con motor local + OpenAI opcional), **usuarios admin** (`GET/PATCH /api/admin/users` con protección de auto-desactivación), seguridad (helmet, CORS, rate-limit, express-validator), manejo centralizado de errores
 - **Modelos:** `User`, `Product`, `Rental` (enum format ampliado con `fisico`), `Order`, `ContactMessage`, `InventoryMovement`
-- **Pruebas automáticas (49 OK, 0 fallidas):** `npm test` (25) y `npm run test:admin` (24) en `backend/`; scripts `smokeTest.js` y `adminSmokeTest.js`
+- **Pruebas automáticas (56 OK, 0 fallidas):** `npm test` (29) y `npm run test:admin` (27) en `backend/`; scripts `smokeTest.js` y `adminSmokeTest.js`
 - **Frontend completo:** Home, Catálogo (búsqueda con debounce, filtros, paginación, skeletons), **ficha de producto `/catalogo/:id`** (formatos, cantidad, carrito, formulario de alquiler), **/contacto** con validación en vivo, **/carrito** (CartContext + localStorage, checkout con confirmación), **/perfil** (datos, preferencias, historial de pedidos), **/mis-alquileres** (ticket y estado), **/admin** con 6 pestañas (Resumen con gráficas, Productos, Pedidos, Alquileres, Mensajes, Usuarios), **widget flotante de asistente IA**, Navbar con contador de carrito, `styles/features.css`
 - **Auth verificado end-to-end** y lint del frontend en **0 problemas**; `npm run build` OK (CSS ~31 kB, JS ~328 kB); los 16 módulos nuevos se sirven sin error en Vite
 - **Seed actualizado:** `scripts/seedProducts.js` ahora hace **upsert por SKU** y fija `stock` (cafés 50, postres 30, libros 4-5, servicio 100) — corrige los 409 "Stock insuficiente" del pedido inicial
@@ -59,7 +59,9 @@
   - **Dashboard en sub-pestañas** (General | Alquileres | Pagos): `AdminOverview.jsx` es ahora contenedor (carga stats una vez + tabs); secciones en `GeneralSection.jsx`, `RentalsSection.jsx`, `PaymentsSection.jsx` (KPIs de pago + dona método + barras apiladas mes×método + barras estado); constantes en `chartsConstants.js` y tarjetas en `chartsCommon.jsx` (separados por el lint `react-refresh/only-export-components`)
   - CSS nuevo en `features.css`: `.payment-method-*`, `.payment-result-*`, `.payment-approved|pending|rejected`, `.admin-payment-cell`, `.admin-pay-btn`, `.admin-subtabs`
 - **Pruebas:** `npm test` **25/25** (pedido con `paymentMethod`, checkout 200/503, verify sin params → 400, webhook inválido → 400, pay-local como cliente → 403) + `npm run test:admin` **24/24** (pay-local aprueba + doble → 409, stats con series de pagos) · lint 0 · build OK
-- **Pendiente:** pegar las llaves sandbox en `backend/.env` (`WOMPI_*`, ver `.env.example`) y probar un pago real con tarjeta `4242 4242 4242 4242`; en producción configurar la URL del webhook en el panel de Wompi
+- **✅ Llaves Wompi configuradas (2026-11-11):** las 5 variables (`WOMPI_ENV/PUBLIC_KEY/PRIVATE_KEY/INTEGRITY_KEY/EVENTS_SECRET`, sandbox) están en `backend/.env`; backend reiniciado y `POST /api/payments/wompi` **responde 200 con checkout** (publicKey `pub_test_…`, firma sha256 y referencia `ORDER-{id}-{n}` OK). **Lección:** un proceso backend viejo no recarga `.env` — si el archivo cambia, **reiniciar** (pasó: proceso iniciado con `.env` viejo → 503 "Wompi no está configurado" con el archivo ya correcto)
+- **Pendiente (mañana):** probar el pago real en navegador con tarjeta `4242 4242 4242 4242` (abrir la URL del checkout generada, verificar redirect a `/pagos/resultado` → `verify` → pedido `approved`); en producción configurar la URL del webhook en el panel de Wompi
+- **Pendiente git (requiere autorización):** commit de este `NOTAS.md` (el push grande `3e6224a` ya subió todo lo demás)
 
 ## Dashboard admin con sidebar lateral (2026-11-11)
 - **Layout nuevo de `/admin`:** el navbar horizontal público ya no se muestra en el panel — `MainLayout.jsx` detecta `pathname.startsWith("/admin")` y renderiza solo el `<Outlet />` (sin Navbar, **sin Footer y sin asistente IA flotante** — decisión del equipo). Las páginas públicas no cambian
@@ -69,6 +71,21 @@
 - **Móvil (≤900px):** hamburguesa ☰ en el header → sidebar off-canvas (`translateX`) + overlay oscuro; se cierra al elegir un ítem. ≤560px: header en dos filas (acciones al ancho completo)
 - **CSS:** bloque nuevo "Panel administrativo: layout" en `features.css` (`.admin-dashboard` ahora flex sin padding, `.admin-sidebar`, `.admin-tree*`, `.admin-header`, `.admin-avatar`, `.btn-logout`, `.admin-hamburger`, `.admin-content` + media queries); `padding: 0` anula el `section { padding: 70px 8% }` global
 - **Verificación:** lint 0 · build OK (CSS 42.9 kB) · `/admin` sirve 200 en Vite
+
+## Inventario en pedidos + navbar estilo admin (2026-11-12)
+- **Navbar del cliente (2026-11-12):** el botón "Cerrar sesión" público ahora usa la clase **`.btn-logout`** con icono `⏻` (mismo diseño del header del panel admin: fantasma con borde/fondo rojo tenue); `features.css` ya estaba importado globalmente en `main.jsx`, no hizo falta CSS nuevo
+- **Stock afectado por las compras (2026-11-12):** `createOrder` ahora **descuenta el stock de forma atómica** y lo **devuelve al cancelar**:
+  - **Modelo `Order`:** campo nuevo **`stockReserved`** (`Boolean`, default `false`) — marca si el pedido descontó stock; los pedidos antiguos quedan en `false` → cancelarlos NO devuelve stock que nunca se descontó
+  - **Modelo `InventoryMovement`:** enum `type` ampliado con **`sale`** (venta = cantidad negativa, devolución por cancelación = positiva); la ruta manual de admin (`restock|adjustment`) no cambió
+  - **`orderController.js` reescrito con transacciones** (patrón de `adjustStock` + `session.withTransaction`; Atlas soporta transacciones multi-documento, verificado):
+    - `createOrder`: crea pedido con `stockReserved: true` y por ítem llama `deductStock` → `findOneAndUpdate({ stock: { $gte: qty } }, { $inc: { stock: -qty } })` (condicional, evita ventas cruzadas) + `InventoryMovement` (`type: "sale"`, qty negativa, reason `Venta - pedido {id}`); si no alcanza stock → 409 y **la transacción revierte todo** (sin pedido a medias)
+    - `cancelMyOrder`: si `stockReserved` → `releaseOrderStock` (devuelve unidades + movimiento de devolución), marca `stockReserved: false`, pasa a `cancelado` (todo en una transacción)
+    - `updateOrderStatus` (admin): → `cancelado` devuelve stock si estaba reservado; **`cancelado` → otro estado re-reserva** el stock (409 con mensaje claro si ya no alcanza); mismo estado = no-op
+    - Los pagos (Wompi/`pay-local`) solo hacen `pendiente → confirmado`: no tocan stock (ya reservado al crear)
+  - **Alcance:** el descuento aplica a **todos los ítems** (incluye formato `digital`), consistente con la validación de stock existente
+- **Pruebas actualizadas:** `smokeTest.js` verifica descuento al crear, devolución al cancelar y cancela el pedido de pago al final (**stock neto 0 por corrida**) → **29/29**; `adminSmokeTest.js` verifica descuento de 2 unidades, cancelación admin al final que las devuelve → **27/27**. `lint` 0 · `build` OK
+- **Nota:** hay movimientos `InventoryMovement` de prueba en la DB (corridas de tests previas al cambio no registraban movimientos de venta)
+- **Rate-limit adaptado a desarrollo (2026-11-12):** al hacer clic en "Iniciar sesión" salía **429 Too Many Requests** — las corridas de tests + la navegación local comparten IP (localhost) y agotaban los límites en memoria (100 req/15 min globales + 10 logins/15 min). Solución aprobada: **límites según `NODE_ENV`** — producción mantiene 100 (`app.js`) y 10 (`authRoutes.js`); **desarrollo usa 10000 y 500**. Verificado con header `RateLimit-Policy: 10000;w=900` y reinicio del backend; pruebas 29/29 + 27/27 después del cambio. **Si vuelve a bloquear en dev:** reiniciar el backend (los contadores viven en memoria)
 
 ## Qué falta (prioridad sugerida)
 1. **Proveedor de IA:** configurar `AI_API_KEY`/`AI_MODEL` en `backend/.env` para respuestas abiertas (el motor local ya funciona)
@@ -98,8 +115,8 @@ npm run dev             # nodemon src/server.js (puerto 5000)
 npm start               # node src/server.js
 npm run seed            # upsert de productos de ejemplo
 npm run promote-admin <correo>   # promover usuario a admin
-npm test                # 25 pruebas de humo
-npm run test:admin      # 24 pruebas administrativas
+npm test                # 29 pruebas de humo
+npm run test:admin      # 27 pruebas administrativas
 
 # frontend
 npm run dev             # vite (5173)
@@ -111,9 +128,9 @@ npm run lint
 - **User:** name/email/phone (`String`), password (`String`, select:false), role (enum `customer|admin|staff`), preferences (4 arreglos `[String]`), active (`Boolean`), revokedTokens (`[String]`)
 - **Product:** sku/name/description/category/image (`String`), type (enum `coffee|dessert|book|service`), price/stock (`Number`), availableFor (`[String]`), formats (`[String]`: `fisico|digital|kindle|local_pc`), rental.enabled/dailyPrice/maxDays, active/featured (`Boolean`)
 - **Rental:** user/product (`ObjectId`), startDate/endDate (`Date`), total (`Number`), format (enum `fisico|digital|kindle|local_pc`), paymentStatus (enum `pending|approved|rejected|refunded`), status (enum `pending|active|completed|cancelled`), ticketCode (`String` única)
-- **Order:** user (`ObjectId`), items[{product,name,price,quantity,format `fisico|digital`}], total (`Number`), status (enum `pendiente|confirmado|entregado|cancelado`), notes, paymentReference, **paymentMethod** (enum `wompi|local`, default null), **paymentStatus** (enum `pending|approved|rejected`, default `pending`), **wompiTransactionId**, **paidAt**, **paymentAttempts** (referencia Wompi única por intento)
+- **Order:** user (`ObjectId`), items[{product,name,price,quantity,format `fisico|digital`}], total (`Number`), status (enum `pendiente|confirmado|entregado|cancelado`), notes, paymentReference, **paymentMethod** (enum `wompi|local`, default null), **paymentStatus** (enum `pending|approved|rejected`, default `pending`), **wompiTransactionId**, **paidAt**, **paymentAttempts** (referencia Wompi única por intento), **stockReserved** (`Boolean`, default `false` — el stock del pedido ya fue descontado)
 - **ContactMessage:** name/email/phone/subject/message, audience (enum `duenos|desarrolladores`), status (enum `nuevo|leido`), user (`ObjectId` o null)
-- **InventoryMovement:** product/performedBy (`ObjectId`), type (enum `restock|adjustment`), quantity/previousStock/newStock (`Number` enteros), reason (`String`)
+- **InventoryMovement:** product/performedBy (`ObjectId`), type (enum `restock|adjustment|sale` — `sale` lo registran los pedidos), quantity/previousStock/newStock (`Number` enteros), reason (`String`)
 
 ## Conexión a Mongo
 - Código en `backend/src/config/database.js` (`mongoose.connect(process.env.MONGODB_URI)`), invocado en `server.js` antes de arrancar Express (falla con `exit(1)` si no hay URI)
