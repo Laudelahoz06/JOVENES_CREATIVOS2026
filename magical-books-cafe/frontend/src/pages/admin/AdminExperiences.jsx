@@ -372,7 +372,7 @@ function AdminExperiences() {
                         </label>
 
                         <label className="admin-form-full">
-                            Grupo de WhatsApp (opcional, se muestra como QR)
+                            URL conexion
                             <input
                                 name="whatsappUrl"
                                 type="url"

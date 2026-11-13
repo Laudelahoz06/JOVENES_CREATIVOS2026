@@ -120,13 +120,42 @@ function ExperienceCards() {
         }
     };
 
-    // Convierte la URL de playlist de Spotify en su embed incrustable.
+    // Convierte la URL de Spotify en su embed incrustable.
+    // Soporta playlist, album, artista, track, episodio y programas,
+    // rutas con /intl-xx/ y enlaces con query (?si=...).
     const toSpotifyEmbed = (url) => {
         if (!url) return "";
 
-        return url
-            .replace(/^https?:\/\/open\.spotify\.com\//, "https://open.spotify.com/embed/")
-            .replace(/^https?:\/\/open\.spotify\.intl\//, "https://open.spotify.com/embed/");
+        try {
+            const parsed = new URL(url);
+
+            // Los enlaces cortos spotify.link no se pueden incrustar.
+            if (parsed.hostname === "spotify.link") return "";
+
+            const parts = parsed.pathname
+                .split("/")
+                .filter(Boolean)
+                // Quita el segmento regional (intl-es, intl-en, ...).
+                .filter((segment) => !segment.startsWith("intl-"));
+
+            const [type, id] = parts;
+            const tipos = [
+                "playlist",
+                "album",
+                "artist",
+                "track",
+                "episode",
+                "show"
+            ];
+
+            if (type && id && tipos.includes(type)) {
+                return `https://open.spotify.com/embed/${type}/${id}`;
+            }
+
+            return `https://open.spotify.com/embed${parsed.pathname}`;
+        } catch {
+            return "";
+        }
     };
 
     // Experiencias administradas desde el panel admin (GET /experiences).
@@ -349,7 +378,7 @@ function ExperienceCards() {
                         className="spotify-modal"
                         role="dialog"
                         aria-modal="true"
-                        aria-label={`Grupo de WhatsApp de ${whatsappOpen.title}`}
+                        aria-label={`URL de conexión de ${whatsappOpen.title}`}
                         onClick={(event) => event.stopPropagation()}
                     >
                         <div className="spotify-modal-header">
@@ -404,8 +433,8 @@ function ExperienceCards() {
                         </div>
 
                         <p className="spotify-modal-hint">
-                            Escanea el código QR con tu celular o abre el
-                            enlace para unirte a nuestro grupo de WhatsApp.
+                            Escanea el código QR con tu celular o toca
+                            «Unirse» para abrir el enlace de la comunidad.
                         </p>
                     </div>
                 </div>
@@ -443,16 +472,25 @@ function ExperienceCards() {
                             {spotifyOpen.description}
                         </p>
 
-                        <iframe
-                            className="spotify-embed"
-                            src={toSpotifyEmbed(spotifyOpen.spotifyUrl)}
-                            width="100%"
-                            height="420"
-                            frameBorder="0"
-                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                            loading="lazy"
-                            title={`Playlist de ${spotifyOpen.title}`}
-                        />
+                        {toSpotifyEmbed(spotifyOpen.spotifyUrl) ? (
+                            <iframe
+                                className="spotify-embed"
+                                src={toSpotifyEmbed(spotifyOpen.spotifyUrl)}
+                                width="100%"
+                                height="420"
+                                frameBorder="0"
+                                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                                loading="lazy"
+                                title={`Playlist de ${spotifyOpen.title}`}
+                            />
+                        ) : (
+                            <div className="whatsapp-qr-box">
+                                <p className="admin-status">
+                                    Este enlace no se puede mostrar aquí.
+                                    Ábrelo en Spotify para ver la lista.
+                                </p>
+                            </div>
+                        )}
 
                         <div className="spotify-modal-actions">
                             <a
@@ -461,7 +499,7 @@ function ExperienceCards() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
-                                Agregar canciones ♪
+                                Abrir en Spotify ♪
                             </a>
 
                             <button
@@ -474,8 +512,9 @@ function ExperienceCards() {
                         </div>
 
                         <p className="spotify-modal-hint">
-                            Abre la playlist en Spotify y toca «Agregar» para
-                            contribuir con tus canciones favoritas.
+                            Usa una URL de playlist de Spotify
+                            (open.spotify.com/playlist/...) para que aquí se
+                            muestren las canciones de la lista.
                         </p>
                     </div>
                 </div>

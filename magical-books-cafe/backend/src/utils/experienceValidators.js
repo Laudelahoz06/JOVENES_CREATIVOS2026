@@ -37,12 +37,12 @@ export const createExperienceValidation = [
 
     body("spotifyUrl")
         .optional({ values: "falsy" })
-        .isURL({ protocols: ["http", "https"], require_protocol: true, host_whitelist: ["open.spotify.com", "spotify.link"] })
+        .isURL({ protocols: ["http", "https"], require_protocol: true, host_whitelist: ["open.spotify.com", "www.open.spotify.com", "spotify.link", "www.spotify.link"] })
         .withMessage("La URL debe ser de Spotify (open.spotify.com)."),
 
     body("whatsappUrl")
         .optional({ values: "falsy" })
-        .isURL({ protocols: ["http", "https"], require_protocol: true, host_whitelist: ["chat.whatsapp.com", "wa.me", "api.whatsapp.com", "whatsapp.com"] })
+        .isURL({ protocols: ["http", "https"], require_protocol: true, host_whitelist: ["chat.whatsapp.com", "www.chat.whatsapp.com", "wa.me", "www.wa.me", "api.whatsapp.com", "whatsapp.com", "www.whatsapp.com"] })
         .withMessage("La URL debe ser un enlace de WhatsApp (chat.whatsapp.com o wa.me)."),
 
     body("category")
@@ -92,11 +92,11 @@ export const updateExperienceValidation = [
 
     body("spotifyUrl")
         .optional({ values: "falsy" })
-        .isURL({ protocols: ["http", "https"], require_protocol: true, host_whitelist: ["open.spotify.com", "spotify.link"] }),
+        .isURL({ protocols: ["http", "https"], require_protocol: true, host_whitelist: ["open.spotify.com", "www.open.spotify.com", "spotify.link", "www.spotify.link"] }),
 
     body("whatsappUrl")
         .optional({ values: "falsy" })
-        .isURL({ protocols: ["http", "https"], require_protocol: true, host_whitelist: ["chat.whatsapp.com", "wa.me", "api.whatsapp.com", "whatsapp.com"] }),
+        .isURL({ protocols: ["http", "https"], require_protocol: true, host_whitelist: ["chat.whatsapp.com", "www.chat.whatsapp.com", "wa.me", "www.wa.me", "api.whatsapp.com", "whatsapp.com", "www.whatsapp.com"] }),
 
     body("category").optional().trim().notEmpty().isLength({ max: 80 }),
 

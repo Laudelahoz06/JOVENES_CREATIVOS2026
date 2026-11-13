@@ -67,7 +67,7 @@ const experiences = [
             "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=800&q=80",
         to: "",
         // Reemplaza por la URL de tu playlist colaborativa de Spotify.
-        spotifyUrl: "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M",
+        spotifyUrl: "",
         category: "Ambiente",
         order: 5
     },
