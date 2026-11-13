@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { apiRequest } from "../services/api";
+import AccountLayout from "../layouts/AccountLayout";
 import { formatDate } from "../utils/format";
 
 const AUDIENCE_LABELS = {
@@ -49,16 +50,11 @@ function MyMessages() {
     }, []);
 
     return (
-        <section className="my-messages-page">
-
-            <div className="my-messages-header">
-                <span>BUZÓN DEL CLIENTE</span>
-                <h1>Mis mensajes</h1>
-                <p>
-                    Tus mensajes enviados desde la página de contacto y
-                    las respuestas del equipo en un solo lugar.
-                </p>
-            </div>
+        <AccountLayout
+            eyebrow="BUZÓN DEL CLIENTE"
+            title="Mis mensajes"
+            description="Tus mensajes enviados desde la página de contacto y las respuestas del equipo en un solo lugar."
+        >
 
             {loading && (
                 <p className="my-messages-status">
@@ -140,7 +136,7 @@ function MyMessages() {
                 </div>
             )}
 
-        </section>
+        </AccountLayout>
     );
 }
 

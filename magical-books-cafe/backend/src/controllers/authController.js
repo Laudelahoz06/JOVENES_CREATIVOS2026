@@ -74,7 +74,10 @@ export const register = async (req, res, next) => {
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                role: user.role
+                phone: user.phone || "",
+                role: user.role,
+                preferences: user.preferences,
+                createdAt: user.createdAt
             }
         });
 
@@ -127,7 +130,10 @@ export const login = async (req, res, next) => {
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                role: user.role
+                phone: user.phone || "",
+                role: user.role,
+                preferences: user.preferences,
+                createdAt: user.createdAt
             }
         });
 
@@ -144,6 +150,7 @@ export const getProfile = async (req, res) => {
             id: req.user._id,
             name: req.user.name,
             email: req.user.email,
+            phone: req.user.phone || "",
             role: req.user.role,
             preferences: req.user.preferences,
             createdAt: req.user.createdAt

@@ -142,7 +142,7 @@ function Cart() {
                         <button
                             type="button"
                             className="btn-secondary"
-                            onClick={() => navigate("/perfil")}
+                            onClick={() => navigate("/mis-pedidos")}
                         >
                             Ver mis pedidos
                         </button>

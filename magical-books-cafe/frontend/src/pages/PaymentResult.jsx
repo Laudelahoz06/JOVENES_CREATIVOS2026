@@ -176,7 +176,7 @@ function PaymentResult() {
                     )}
 
                     {state.phase === "approved" && (
-                        <Link to="/perfil" className="btn-primary">
+                        <Link to="/mis-pedidos" className="btn-primary">
                             Ver mis pedidos
                         </Link>
                     )}

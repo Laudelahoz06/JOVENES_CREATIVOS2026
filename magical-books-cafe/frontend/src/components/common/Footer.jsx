@@ -35,6 +35,7 @@ function Footer() {
                     <h4>Mi cuenta</h4>
                     <Link to="/carrito">Carrito</Link>
                     <Link to="/perfil">Mi perfil</Link>
+                    <Link to="/mis-pedidos">Mis pedidos</Link>
                     <Link to="/mis-alquileres">Mis alquileres</Link>
                     <Link to="/iniciar-sesion">Iniciar sesión</Link>
                 </nav>

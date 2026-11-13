@@ -11,6 +11,7 @@ import Contact from "../pages/Contact";
 import Cart from "../pages/Cart";
 import PaymentResult from "../pages/PaymentResult";
 import Profile from "../pages/Profile";
+import MyOrders from "../pages/MyOrders";
 import MyRentals from "../pages/MyRentals";
 import MyMessages from "../pages/MyMessages";
 import NotFound from "../pages/NotFound";
@@ -55,6 +56,15 @@ function AppRouter() {
                         element={
                             <ProtectedRoute>
                                 <Profile />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+                        path="/mis-pedidos"
+                        element={
+                            <ProtectedRoute>
+                                <MyOrders />
                             </ProtectedRoute>
                         }
                     />

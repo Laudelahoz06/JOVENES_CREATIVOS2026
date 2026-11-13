@@ -81,6 +81,12 @@ function Navbar() {
                               to: "/perfil"
                           },
                           {
+                              key: "pedidos",
+                              label: "Mis pedidos",
+                              icon: "🛍️",
+                              to: "/mis-pedidos"
+                          },
+                          {
                               key: "alquileres",
                               label: "Mis alquileres",
                               icon: "📚",

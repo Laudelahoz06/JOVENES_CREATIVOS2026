@@ -913,6 +913,22 @@
     letter-spacing: 1px;
 }
 
+.profile-summary-phone {
+    margin-top: 8px;
+}
+
+.profile-since {
+    display: block;
+    margin-top: 10px;
+    color: rgba(244, 235, 221, 0.55);
+    font-size: 0.8rem;
+}
+
+.profile-header-hint {
+    color: rgba(244, 235, 221, 0.65);
+    margin-top: 8px;
+}
+
 .profile-links {
     display: flex;
     flex-direction: column;
@@ -2446,6 +2462,160 @@
     margin-top: 8px;
 }
 
+/* ---------- Mi cuenta (layout compartido del cliente) ---------- */
+
+.account-header {
+    text-align: center;
+    margin-bottom: 42px;
+}
+
+.account-header span {
+    color: var(--color-accent);
+    letter-spacing: 3px;
+    font-size: 0.78rem;
+}
+
+.account-header h1 {
+    font-family: var(--font-title);
+    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    margin: 14px 0 0;
+}
+
+.account-header p {
+    color: rgba(244, 235, 221, 0.72);
+    max-width: 620px;
+    margin: 12px auto 0;
+    line-height: 1.7;
+}
+
+.account-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.7fr);
+    gap: 35px;
+    align-items: start;
+}
+
+.account-sidebar {
+    position: sticky;
+    top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background: var(--color-surface);
+    border: 1px solid rgba(214, 169, 104, 0.25);
+    border-radius: var(--radius-card);
+    padding: 26px 20px;
+}
+
+.account-user-card {
+    text-align: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(214, 169, 104, 0.2);
+}
+
+.account-avatar {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: linear-gradient(
+        135deg,
+        var(--color-primary),
+        var(--color-accent)
+    );
+    color: white;
+    font-size: 1.7rem;
+    font-family: var(--font-title);
+    box-shadow: 0 8px 22px rgba(214, 169, 104, 0.3);
+}
+
+.account-user-data h2 {
+    font-size: 1.15rem;
+    margin-bottom: 4px;
+}
+
+.account-user-data p {
+    color: rgba(244, 235, 221, 0.7);
+    font-size: 0.86rem;
+    margin: 3px 0;
+    word-break: break-all;
+}
+
+.account-user-phone {
+    color: rgba(244, 235, 221, 0.85) !important;
+}
+
+.account-user-data .profile-role {
+    margin-top: 12px;
+}
+
+.account-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.account-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    color: rgba(244, 235, 221, 0.8);
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.account-nav-link:hover {
+    background: rgba(214, 169, 104, 0.1);
+    color: var(--color-accent);
+    transform: translateX(3px);
+}
+
+.account-nav-link.is-active {
+    background: linear-gradient(
+        90deg,
+        rgba(214, 169, 104, 0.24),
+        rgba(214, 169, 104, 0.06)
+    );
+    border-color: rgba(214, 169, 104, 0.45);
+    color: var(--color-accent);
+    box-shadow: inset 3px 0 0 var(--color-accent);
+}
+
+.account-nav-icon {
+    width: 24px;
+    text-align: center;
+    font-size: 1.05rem;
+}
+
+.account-nav-secondary {
+    padding-top: 16px;
+    border-top: 1px solid rgba(214, 169, 104, 0.2);
+}
+
+.account-nav-secondary .account-nav-link {
+    font-weight: 500;
+    font-size: 0.88rem;
+    color: rgba(244, 235, 221, 0.6);
+}
+
+.account-content {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
 /* ---------- Responsive de las nuevas vistas ---------- */
 
 @media (max-width: 900px) {
@@ -2453,13 +2623,25 @@
     .product-detail-grid,
     .contact-grid,
     .cart-grid,
-    .profile-grid {
+    .profile-grid,
+    .account-layout {
         grid-template-columns: minmax(0, 1fr);
     }
 
     .cart-summary,
-    .profile-summary-card {
+    .profile-summary-card,
+    .account-sidebar {
         position: static;
+    }
+
+    .account-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .account-nav-secondary {
+        border-top: none;
+        padding-top: 0;
     }
 
     .rental-form {

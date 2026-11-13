@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { apiRequest } from "../services/api";
+import AccountLayout from "../layouts/AccountLayout";
 import {
     formatCOP,
     formatDate,
@@ -47,16 +48,11 @@ function MyRentals() {
     }, []);
 
     return (
-        <section className="rentals-page">
-
-            <div className="rentals-header">
-                <span>BIBLIOTECA EN PRÉSTAMO</span>
-                <h1>Mis alquileres</h1>
-                <p>
-                    Consulta el estado de tus libros y el código de cada
-                    comprobante.
-                </p>
-            </div>
+        <AccountLayout
+            eyebrow="BIBLIOTECA EN PRÉSTAMO"
+            title="Mis alquileres"
+            description="Consulta el estado de tus libros y el código de cada comprobante."
+        >
 
             {loading && (
                 <p className="rentals-status">Cargando alquileres...</p>
@@ -123,7 +119,7 @@ function MyRentals() {
                 </div>
             )}
 
-        </section>
+        </AccountLayout>
     );
 }
 
