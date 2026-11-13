@@ -1,8 +1,7 @@
 # Magical Books Café — Guía de desarrollo, paso a paso
 
 > Documento técnico para ejecutar, entender y mantener el proyecto. Cada sección explica **qué se hace**, **por qué se hace** y **qué se espera obtener**, con el código real comentado.
->
-> Regla del equipo: **nunca se suben cambios al Git desde esta máquina** (todo queda local y documentado aquí).
+
 
 ---
 
