@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { getProducts } from "../../services/products";
+import { getExperiences } from "../../services/experiences";
 
 // Evento que usa AssistantWidget para abrirse desde otra parte de la app.
 const OPEN_ASSISTANT_EVENT = "open-assistant";
 
+// Respaldo si la API está vacía o no responde: mantiene el home siempre completo.
 const baseExperiences = [
     {
         icon: "☕",
@@ -91,6 +93,40 @@ const baseExperiences = [
 
 function ExperienceCards() {
     const [services, setServices] = useState([]);
+    const [managed, setManaged] = useState([]);
+    const [spotifyOpen, setSpotifyOpen] = useState(null);
+
+    // Convierte la URL de playlist de Spotify en su embed incrustable.
+    const toSpotifyEmbed = (url) => {
+        if (!url) return "";
+
+        return url
+            .replace(/^https?:\/\/open\.spotify\.com\//, "https://open.spotify.com/embed/")
+            .replace(/^https?:\/\/open\.spotify\.intl\//, "https://open.spotify.com/embed/");
+    };
+
+    // Experiencias administradas desde el panel admin (GET /experiences).
+    // Si la API falla o no hay registros, se usa el respaldo hardcodeado.
+    useEffect(() => {
+        let cancelled = false;
+
+        const timer = window.setTimeout(async () => {
+            try {
+                const { experiences } = await getExperiences({
+                    limit: 50
+                });
+
+                if (!cancelled) setManaged(experiences);
+            } catch {
+                if (!cancelled) setManaged([]);
+            }
+        }, 0);
+
+        return () => {
+            cancelled = true;
+            window.clearTimeout(timer);
+        };
+    }, []);
 
     // Las experiencias de tipo servicio se cargan desde el catálogo:
     // cualquier servicio nuevo creado en el panel admin aparece aquí solo.
@@ -117,6 +153,16 @@ function ExperienceCards() {
         };
     }, []);
 
+    const managedExperiences = managed.map((item) => ({
+        icon: item.icon || "✦",
+        title: item.title,
+        description: item.description,
+        image: item.image || null,
+        to: item.to || undefined,
+        action: item.action || undefined,
+        spotifyUrl: item.spotifyUrl || undefined
+    }));
+
     const serviceExperiences = services.map((product) => ({
         icon: "✧",
         title: product.name,
@@ -125,7 +171,11 @@ function ExperienceCards() {
         to: `/catalogo/${product._id}`
     }));
 
-    const experiences = [...baseExperiences, ...serviceExperiences];
+    const base = managedExperiences.length > 0
+        ? managedExperiences
+        : baseExperiences;
+
+    const experiences = [...base, ...serviceExperiences];
 
     const openAssistant = () => {
         window.dispatchEvent(new CustomEvent(OPEN_ASSISTANT_EVENT));
@@ -181,11 +231,13 @@ function ExperienceCards() {
 
                                 <p>{item.description}</p>
 
-                                {(item.to || item.action) && (
+                                {(item.to || item.action || item.spotifyUrl) && (
                                     <span className="experience-cta">
                                         {item.action === "assistant"
                                             ? "Pregúntale →"
-                                            : "Ver más →"}
+                                            : item.spotifyUrl
+                                              ? "Escuchar →"
+                                              : "Ver más →"}
                                     </span>
                                 )}
 
@@ -202,6 +254,19 @@ function ExperienceCards() {
                             >
                                 {content}
                             </Link>
+                        );
+                    }
+
+                    if (item.spotifyUrl) {
+                        return (
+                            <button
+                                type="button"
+                                className="experience-card"
+                                key={item.title}
+                                onClick={() => setSpotifyOpen(item)}
+                            >
+                                {content}
+                            </button>
                         );
                     }
 
@@ -229,6 +294,76 @@ function ExperienceCards() {
                 })}
 
             </div>
+
+            {/* Modal con la playlist de Spotify */}
+            {spotifyOpen && (
+                <div
+                    className="spotify-modal-overlay"
+                    onClick={() => setSpotifyOpen(null)}
+                    role="presentation"
+                >
+                    <div
+                        className="spotify-modal"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label={`Playlist de ${spotifyOpen.title}`}
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        <div className="spotify-modal-header">
+                            <h3>
+                                {spotifyOpen.icon} {spotifyOpen.title}
+                            </h3>
+                            <button
+                                type="button"
+                                className="admin-link-button"
+                                aria-label="Cerrar"
+                                onClick={() => setSpotifyOpen(null)}
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <p className="spotify-modal-description">
+                            {spotifyOpen.description}
+                        </p>
+
+                        <iframe
+                            className="spotify-embed"
+                            src={toSpotifyEmbed(spotifyOpen.spotifyUrl)}
+                            width="100%"
+                            height="420"
+                            frameBorder="0"
+                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                            loading="lazy"
+                            title={`Playlist de ${spotifyOpen.title}`}
+                        />
+
+                        <div className="spotify-modal-actions">
+                            <a
+                                className="btn-primary"
+                                href={spotifyOpen.spotifyUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Agregar canciones ♪
+                            </a>
+
+                            <button
+                                type="button"
+                                className="btn-secondary"
+                                onClick={() => setSpotifyOpen(null)}
+                            >
+                                Cerrar
+                            </button>
+                        </div>
+
+                        <p className="spotify-modal-hint">
+                            Abre la playlist en Spotify y toca «Agregar» para
+                            contribuir con tus canciones favoritas.
+                        </p>
+                    </div>
+                </div>
+            )}
 
         </section>
     );

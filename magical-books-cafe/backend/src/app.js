@@ -7,6 +7,8 @@ import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import adminProductRoutes from "./routes/adminProductRoutes.js";
+import experienceRoutes from "./routes/experienceRoutes.js";
+import adminExperienceRoutes from "./routes/adminExperienceRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
 import rentalRoutes from "./routes/rentalRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
@@ -56,6 +58,10 @@ app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 
 app.use("/api/admin/products", adminProductRoutes);
+
+app.use("/api/experiences", experienceRoutes);
+
+app.use("/api/admin/experiences", adminExperienceRoutes);
 
 app.use("/api/admin", adminRoutes);
 

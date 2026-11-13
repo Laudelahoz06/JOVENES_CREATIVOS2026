@@ -1,4 +1,5 @@
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 
@@ -7,14 +8,73 @@ function Navbar() {
     const { user, isAuthenticated, logout } = useAuth();
     const { count } = useCart();
     const navigate = useNavigate();
-    const location = useLocation();
 
     const isAdmin = user?.role === "admin";
 
-    // En el panel administrativo solo se muestran las acciones de admin:
-    // los enlaces públicos del menú central quedan ocultos.
-    const isAdminPage = location.pathname.startsWith("/admin");
+    // Menú lateral vertical en árbol (mismo estilo que el panel admin).
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [groupsOpen, setGroupsOpen] = useState({
+        explorar: true,
+        cuenta: true
+    });
 
+    const MENU = [
+        {
+            key: "explorar",
+            label: "Explorar",
+            icon: "🧭",
+            children: [
+                { key: "inicio", label: "Inicio", icon: "🏠", to: "/" },
+                {
+                    key: "catalogo",
+                    label: "Catálogo",
+                    icon: "🛍️",
+                    to: "/catalogo"
+                },
+                {
+                    key: "experiencias",
+                    label: "Experiencias",
+                    icon: "✨",
+                    hash: "/#experiencias"
+                },
+                {
+                    key: "contacto",
+                    label: "Contacto",
+                    icon: "✉️",
+                    to: "/contacto"
+                }
+            ]
+        },
+        ...(isAuthenticated
+            ? [
+                  {
+                      key: "cuenta",
+                      label: "Mi cuenta",
+                      icon: "👤",
+                      children: [
+                          {
+                              key: "perfil",
+                              label: "Mi perfil",
+                              icon: "🪪",
+                              to: "/perfil"
+                          },
+                          {
+                              key: "alquileres",
+                              label: "Mis alquileres",
+                              icon: "📚",
+                              to: "/mis-alquileres"
+                          },
+                          {
+                              key: "mensajes",
+                              label: "Mis mensajes",
+                              icon: "💬",
+                              to: "/mis-mensajes"
+                          }
+                      ]
+                  }
+              ]
+            : [])
+    ];
 
     const handleLogout = async () => {
         try {
@@ -26,94 +86,219 @@ function Navbar() {
         }
     };
 
+    const toggleGroup = (key) => {
+        setGroupsOpen((previous) => ({
+            ...previous,
+            [key]: !previous[key]
+        }));
+    };
+
+    const closeMenu = () => setMenuOpen(false);
 
     return (
-        <header className="navbar">
+        <>
+            <header className="navbar">
 
-            <Link to="/" className="brand">
-                <span className="brand-icon">✦</span>
-                <span>Magical Books Café</span>
-            </Link>
+                <div className="nav-start">
+                    <button
+                        type="button"
+                        className="nav-hamburger"
+                        aria-label="Abrir menú"
+                        aria-expanded={menuOpen}
+                        onClick={() => setMenuOpen(true)}
+                    >
+                        ☰
+                    </button>
 
-            {!isAdminPage && (
-                <nav className="nav-links">
+                    <Link to="/" className="brand">
+                        <span className="brand-icon">✦</span>
+                        <span>Magical Books Café</span>
+                    </Link>
+                </div>
 
-                    <NavLink to="/">Inicio</NavLink>
+                <div className="nav-actions">
 
-                    <NavLink to="/catalogo">Catálogo</NavLink>
+                    {!isAdmin && (
+                        <Link
+                            to="/carrito"
+                            className="nav-cart"
+                            aria-label="Ver carrito"
+                        >
+                            🛒 Carrito
 
-                    <NavLink to="/contacto">Contacto</NavLink>
-
-                    <a href="/#experiencias">Experiencias</a>
-
-                    {isAuthenticated && (
-                        <NavLink to="/mis-alquileres">Mis alquileres</NavLink>
+                            {count > 0 && (
+                                <span className="nav-cart-badge">{count}</span>
+                            )}
+                        </Link>
                     )}
 
-                    {isAuthenticated && (
-                        <NavLink to="/mis-mensajes">Mis mensajes</NavLink>
-                    )}
+                    {isAuthenticated ? (
+                        <>
+                            <span className="nav-user">
+                                Hola, {user?.name?.split(" ")[0]}
+                            </span>
 
-                </nav>
+                            {!isAdmin && (
+                                <NavLink to="/perfil" className="btn-login">
+                                    Mi perfil
+                                </NavLink>
+                            )}
+
+                            {isAdmin && (
+                                <Link to="/admin" className="btn-login">
+                                    Panel administrativo
+                                </Link>
+                            )}
+
+                            <button
+                                type="button"
+                                className="btn-logout"
+                                onClick={handleLogout}
+                            >
+                                <span aria-hidden="true">⏻</span>
+                                Cerrar sesión
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <Link
+                                to="/iniciar-sesion"
+                                className="btn-login"
+                            >
+                                Iniciar sesión
+                            </Link>
+
+                            <Link to="/registro" className="btn-register">
+                                Registrarse
+                            </Link>
+                        </>
+                    )}
+                </div>
+
+            </header>
+
+            {/* Overlay para cerrar el drawer */}
+            {menuOpen && (
+                <div
+                    className="nav-drawer-overlay"
+                    onClick={closeMenu}
+                    role="presentation"
+                />
             )}
 
-            <div className="nav-actions">
-
-                {!isAdmin && (
+            {/* ---------- Drawer vertical en árbol ---------- */}
+            <aside
+                className={
+                    menuOpen ? "nav-drawer open" : "nav-drawer"
+                }
+                aria-label="Menú principal"
+            >
+                <div className="nav-drawer-brand">
                     <Link
-                        to="/carrito"
-                        className="nav-cart"
-                        aria-label="Ver carrito"
+                        to="/"
+                        className="brand"
+                        onClick={closeMenu}
                     >
-                        🛒 Carrito
-
-                        {count > 0 && (
-                            <span className="nav-cart-badge">{count}</span>
-                        )}
+                        <span className="brand-icon">✦</span>
+                        <span>Magical Books Café</span>
                     </Link>
-                )}
 
-                {isAuthenticated ? (
-                    <>
-                        <span className="nav-user">
-                            Hola, {user?.name?.split(" ")[0]}
-                        </span>
+                    <button
+                        type="button"
+                        className="admin-link-button"
+                        aria-label="Cerrar menú"
+                        onClick={closeMenu}
+                    >
+                        ✕
+                    </button>
+                </div>
 
-                        {!isAdmin && (
-                            <NavLink to="/perfil" className="btn-login">
-                                Mi perfil
-                            </NavLink>
-                        )}
+                <nav className="admin-tree">
+                    {MENU.map((group) => {
+                        const isOpen = groupsOpen[group.key] !== false;
 
-                        {isAdmin && (
-                            <Link to="/admin" className="btn-login">
-                                Panel administrativo
-                            </Link>
-                        )}
+                        return (
+                            <div
+                                className="admin-tree-group"
+                                key={group.key}
+                            >
+                                <button
+                                    type="button"
+                                    className="admin-tree-parent"
+                                    aria-expanded={isOpen}
+                                    onClick={() => toggleGroup(group.key)}
+                                >
+                                    <span className="admin-tree-icon">
+                                        {group.icon}
+                                    </span>
+                                    <span>{group.label}</span>
+                                    <span
+                                        className={
+                                            isOpen
+                                                ? "admin-tree-chevron open"
+                                                : "admin-tree-chevron"
+                                        }
+                                    >
+                                        ▾
+                                    </span>
+                                </button>
 
-                        <button
-                            type="button"
-                            className="btn-logout"
-                            onClick={handleLogout}
-                        >
-                            <span aria-hidden="true">⏻</span>
-                            Cerrar sesión
-                        </button>
-                    </>
-                ) : (
-                    <>
-                        <Link to="/iniciar-sesion" className="btn-login">
-                            Iniciar sesión
-                        </Link>
+                                {isOpen && (
+                                    <div className="admin-tree-children">
+                                        {group.children.map((child) => {
+                                            const classes = (isActive) =>
+                                                isActive
+                                                    ? "admin-tree-item active"
+                                                    : "admin-tree-item";
 
-                        <Link to="/registro" className="btn-register">
-                            Registrarse
-                        </Link>
-                    </>
-                )}
-            </div>
+                                            if (child.hash) {
+                                                return (
+                                                    <a
+                                                        key={child.key}
+                                                        href={child.hash}
+                                                        className="admin-tree-item"
+                                                        onClick={closeMenu}
+                                                    >
+                                                        <span className="admin-tree-branch">
+                                                            │
+                                                        </span>
+                                                        <span className="admin-tree-icon">
+                                                            {child.icon}
+                                                        </span>
+                                                        <span>
+                                                            {child.label}
+                                                        </span>
+                                                    </a>
+                                                );
+                                            }
 
-        </header>
+                                            return (
+                                                <NavLink
+                                                    key={child.key}
+                                                    to={child.to}
+                                                    className={classes}
+                                                    onClick={closeMenu}
+                                                >
+                                                    <span className="admin-tree-branch">
+                                                        │
+                                                    </span>
+                                                    <span className="admin-tree-icon">
+                                                        {child.icon}
+                                                    </span>
+                                                    <span>
+                                                        {child.label}
+                                                    </span>
+                                                </NavLink>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </nav>
+            </aside>
+        </>
     );
 }
 

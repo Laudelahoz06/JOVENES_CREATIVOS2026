@@ -7,6 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import AdminProducts from "./admin/AdminProducts";
 import AdminOrders from "./admin/AdminOrders";
 import AdminRentals from "./admin/AdminRentals";
+import AdminExperiences from "./admin/AdminExperiences";
 import AdminMessages from "./admin/AdminMessages";
 import AdminUsers from "./admin/AdminUsers";
 
@@ -24,6 +25,7 @@ const MENU = [
         icon: "📦",
         children: [
             { key: "productos", label: "Productos", icon: "🛍️" },
+            { key: "experiencias", label: "Experiencias", icon: "✨" },
             { key: "pedidos", label: "Pedidos", icon: "🧾" },
             { key: "alquileres", label: "Alquileres", icon: "📚" }
         ]
@@ -35,6 +37,7 @@ const MENU = [
 const SECTION_TITLES = {
     resumen: "Resumen",
     productos: "Productos",
+    experiencias: "Experiencias",
     pedidos: "Pedidos",
     alquileres: "Alquileres",
     mensajes: "Mensajes",
@@ -281,6 +284,7 @@ function AdminDashboard() {
                         </Suspense>
                     )}
                     {activeTab === "productos" && <AdminProducts />}
+                    {activeTab === "experiencias" && <AdminExperiences />}
                     {activeTab === "pedidos" && <AdminOrders />}
                     {activeTab === "alquileres" && <AdminRentals />}
                     {activeTab === "mensajes" && (

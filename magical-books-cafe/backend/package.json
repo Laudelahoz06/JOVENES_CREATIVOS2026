@@ -8,6 +8,7 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "seed": "node scripts/seedProducts.js",
+    "seed:experiences": "node scripts/seedExperiences.js",
     "promote-admin": "node scripts/promoteAdmin.js",
     "test": "node scripts/smokeTest.js",
     "test:admin": "node scripts/adminSmokeTest.js",
