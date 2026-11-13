@@ -296,3 +296,102 @@
     font-size: 12px;
     font-style: italic;
 }
+
+/* ---------- Recuperación de contraseña ---------- */
+
+.auth-forgot {
+    text-align: right;
+    margin: -6px 0 16px;
+}
+
+.auth-forgot a {
+    color: var(--color-accent);
+    font-size: 12.5px;
+    font-weight: 600;
+}
+
+.auth-forgot a:hover {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+.auth-success {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+    padding: 18px 16px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    background: rgba(80, 200, 130, 0.1);
+    border: 1px solid rgba(80, 200, 130, 0.4);
+    color: rgba(244, 235, 221, 0.88);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.auth-success > span {
+    font-size: 1.7rem;
+}
+
+.auth-success .auth-submit {
+    margin-top: 6px;
+    text-decoration: none;
+    max-width: 280px;
+}
+
+.auth-success-hint {
+    color: rgba(244, 235, 221, 0.55);
+    font-size: 12px;
+}
+
+/* Indicador de requisitos de la contraseña */
+
+.password-strength {
+    margin: -4px 0 16px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: rgba(214, 169, 104, 0.07);
+    border: 1px solid rgba(214, 169, 104, 0.2);
+}
+
+.password-strength-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-accent);
+    margin-bottom: 8px;
+}
+
+.password-strength ul {
+    list-style: none;
+    display: grid;
+    gap: 5px;
+}
+
+.password-strength li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: rgba(244, 235, 221, 0.5);
+}
+
+.password-strength li.is-ok {
+    color: #8fe3b0;
+}
+
+.password-strength li span {
+    width: 14px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.password-strength-ok {
+    background: rgba(80, 200, 130, 0.08);
+    border-color: rgba(80, 200, 130, 0.4);
+}
+
+.password-strength-ok .password-strength-title {
+    color: #8fe3b0;
+}

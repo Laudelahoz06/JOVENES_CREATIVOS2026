@@ -153,6 +153,12 @@ function Login() {
                                     {showPassword ? "Ocultar" : "Mostrar"}
                                 </button>
                             </div>
+
+                            <div className="auth-forgot">
+                                <Link to="/recuperar-contrasena">
+                                    ¿Olvidaste tu contraseña?
+                                </Link>
+                            </div>
                         </div>
 
                         {error && (

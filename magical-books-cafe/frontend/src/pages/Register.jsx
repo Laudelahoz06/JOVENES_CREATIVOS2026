@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { isStrongPassword, missingPasswordRules } from "../utils/password";
+import PasswordStrength from "../components/auth/PasswordStrength";
 
 function Register() {
     const { register } = useAuth();
@@ -24,13 +26,11 @@ function Register() {
             return;
         }
 
-        if (password.length < 8) {
-            setError("La contraseña debe tener al menos 8 caracteres.");
-            return;
-        }
-
-        if (password.length > 72) {
-            setError("La contraseña no puede superar los 72 caracteres.");
+        if (!isStrongPassword(password)) {
+            setError(
+                "La contraseña no es segura. Falta: " +
+                    missingPasswordRules(password).join(", ") + "."
+            );
             return;
         }
 
@@ -137,6 +137,8 @@ function Register() {
                                     {showPassword ? "Ocultar" : "Mostrar"}
                                 </button>
                             </div>
+
+                            <PasswordStrength password={password} />
                         </div>
 
                         <div className="auth-field">

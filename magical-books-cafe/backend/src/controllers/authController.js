@@ -1,6 +1,11 @@
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import { validationResult } from "express-validator";
 import User from "../models/User.js";
+import {
+    isSmtpConfigured,
+    sendPasswordResetEmail
+} from "../services/mailer.js";
 
 const generateToken = (user) => {
     return jwt.sign(
@@ -207,6 +212,156 @@ export const updateProfile = async (req, res, next) => {
                 phone: user.phone,
                 preferences: user.preferences
             }
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+// CONTRASEÑA OLVIDADA — envía un enlace de recuperación al correo.
+// Por seguridad siempre responde igual aunque el correo no exista.
+export const forgotPassword = async (req, res, next) => {
+    try {
+        if (!validateRequest(req, res)) return;
+
+        const { email } = req.body;
+        const mensaje =
+            "Si el correo está registrado, recibirás un enlace de " +
+            "recuperación. Revisa tu bandeja de entrada.";
+
+        const user = await User.findOne({
+            email: email.toLowerCase().trim(),
+            active: true
+        });
+
+        if (!user) {
+            return res.status(200).json({ success: true, message: mensaje });
+        }
+
+        if (!isSmtpConfigured()) {
+            return res.status(503).json({
+                success: false,
+                message:
+                    "El servicio de correo no está configurado. " +
+                    "Contacta al administrador."
+            });
+        }
+
+        // Guardamos solo el hash del token; el token en claro viaja
+        // por el enlace del correo y no sirve para nada más.
+        const rawToken = crypto.randomBytes(32).toString("hex");
+        const hashedToken = crypto
+            .createHash("sha256")
+            .update(rawToken)
+            .digest("hex");
+
+        user.passwordResetToken = hashedToken;
+        user.passwordResetExpires = new Date(Date.now() + 30 * 60 * 1000);
+        await user.save({ validateBeforeSave: false });
+
+        const frontendBase = (process.env.FRONTEND_URL || "http://localhost:5173")
+            .split(",")[0]
+            .trim();
+        const resetUrl =
+            `${frontendBase}/restablecer-contrasena?token=${rawToken}`;
+
+        try {
+            await sendPasswordResetEmail(user.email, resetUrl);
+        } catch (error) {
+            // Si falla el envío, el token no sirve de nada: lo limpiamos.
+            console.error("Error enviando correo de recuperación:", error.message);
+            user.passwordResetToken = undefined;
+            user.passwordResetExpires = undefined;
+            await user.save({ validateBeforeSave: false });
+
+            return res.status(503).json({
+                success: false,
+                message:
+                    "No se pudo enviar el correo de recuperación. " +
+                    "Intenta más tarde."
+            });
+        }
+
+        return res.status(200).json({ success: true, message: mensaje });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+// RESTABLECER CONTRASEÑA con el token enviado por correo.
+export const resetPassword = async (req, res, next) => {
+    try {
+        if (!validateRequest(req, res)) return;
+
+        const { token, password } = req.body;
+
+        const hashedToken = crypto
+            .createHash("sha256")
+            .update(token)
+            .digest("hex");
+
+        const user = await User.findOne({
+            passwordResetToken: hashedToken,
+            passwordResetExpires: { $gt: new Date() },
+            active: true
+        });
+
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                message: "El enlace es inválido o ha expirado. " +
+                    "Solicita uno nuevo."
+            });
+        }
+
+        user.password = password;
+        user.passwordResetToken = undefined;
+        user.passwordResetExpires = undefined;
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Contraseña actualizada. Ya puedes iniciar sesión."
+        });
+
+    } catch (error) {
+        next(error);
+    }
+};
+
+// CAMBIAR CONTRASEÑA desde el perfil (sesión iniciada).
+export const changePassword = async (req, res, next) => {
+    try {
+        if (!validateRequest(req, res)) return;
+
+        const { currentPassword, newPassword } = req.body;
+
+        const user = await User.findById(req.user._id).select("+password");
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "Usuario no encontrado."
+            });
+        }
+
+        const passwordMatches = await user.comparePassword(currentPassword);
+
+        if (!passwordMatches) {
+            return res.status(401).json({
+                success: false,
+                message: "La contraseña actual es incorrecta."
+            });
+        }
+
+        user.password = newPassword;
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Contraseña actualizada correctamente."
         });
 
     } catch (error) {

@@ -7,6 +7,8 @@ import Catalog from "../pages/Catalog";
 import ProductDetail from "../pages/ProductDetail";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
+import ForgotPassword from "../pages/ForgotPassword";
+import ResetPassword from "../pages/ResetPassword";
 import Contact from "../pages/Contact";
 import Cart from "../pages/Cart";
 import PaymentResult from "../pages/PaymentResult";
@@ -41,6 +43,16 @@ function AppRouter() {
                     <Route path="/iniciar-sesion" element={<Login />} />
 
                     <Route path="/registro" element={<Register />} />
+
+                    <Route
+                        path="/recuperar-contrasena"
+                        element={<ForgotPassword />}
+                    />
+
+                    <Route
+                        path="/restablecer-contrasena"
+                        element={<ResetPassword />}
+                    />
 
                     <Route path="/contacto" element={<Contact />} />
 

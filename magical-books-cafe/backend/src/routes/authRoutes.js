@@ -6,7 +6,10 @@ import {
     login,
     getProfile,
     updateProfile,
-    logout
+    logout,
+    forgotPassword,
+    resetPassword,
+    changePassword
 } from "../controllers/authController.js";
 
 import { authenticate } from "../middlewares/authMiddleware.js";
@@ -29,6 +32,21 @@ const authLimiter = rateLimit({
     }
 });
 
+// Contraseña segura: 8-72 caracteres con mayúscula, minúscula,
+// número y al menos un carácter especial.
+const STRONG_PASSWORD_REGEX =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,72}$/;
+const STRONG_PASSWORD_MESSAGE =
+    "La contraseña debe tener de 8 a 72 caracteres e incluir " +
+    "mayúscula, minúscula, número y un carácter especial.";
+
+const strongPassword = (field = "password") =>
+    body(field)
+        .isString()
+        .withMessage(STRONG_PASSWORD_MESSAGE)
+        .matches(STRONG_PASSWORD_REGEX)
+        .withMessage(STRONG_PASSWORD_MESSAGE);
+
 const registerValidation = [
     body("name")
         .trim()
@@ -43,10 +61,7 @@ const registerValidation = [
         .withMessage("Ingresa un correo electrónico válido.")
         .normalizeEmail(),
 
-    body("password")
-        .isString()
-        .isLength({ min: 8, max: 72 })
-        .withMessage("La contraseña debe tener entre 8 y 72 caracteres.")
+    strongPassword()
 ];
 
 const loginValidation = [
@@ -81,6 +96,30 @@ const updateProfileValidation = [
         .withMessage("Las preferencias deben ser un objeto.")
 ];
 
+const forgotPasswordValidation = [
+    body("email")
+        .trim()
+        .isEmail()
+        .withMessage("Ingresa un correo electrónico válido.")
+        .normalizeEmail()
+];
+
+const resetPasswordValidation = [
+    body("token")
+        .isString()
+        .isLength({ min: 32, max: 128 })
+        .withMessage("El enlace de recuperación no es válido."),
+    strongPassword()
+];
+
+const changePasswordValidation = [
+    body("currentPassword")
+        .isString()
+        .notEmpty()
+        .withMessage("La contraseña actual es obligatoria."),
+    strongPassword("newPassword")
+];
+
 router.post("/register", authLimiter, registerValidation, register);
 router.post("/login", authLimiter, loginValidation, login);
 router.get("/profile", authenticate, getProfile);
@@ -89,6 +128,25 @@ router.patch(
     authenticate,
     updateProfileValidation,
     updateProfile
+);
+router.post(
+    "/forgot-password",
+    authLimiter,
+    forgotPasswordValidation,
+    forgotPassword
+);
+router.post(
+    "/reset-password",
+    authLimiter,
+    resetPasswordValidation,
+    resetPassword
+);
+router.patch(
+    "/password",
+    authenticate,
+    authLimiter,
+    changePasswordValidation,
+    changePassword
 );
 router.post("/logout", authenticate, logout);
 

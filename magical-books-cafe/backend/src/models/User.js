@@ -27,6 +27,18 @@ const userSchema = new mongoose.Schema({
         select: false
     },
 
+    // Recuperación de contraseña: se guarda solo el hash del token
+    // enviado por correo (nunca el token en claro).
+    passwordResetToken: {
+        type: String,
+        select: false
+    },
+
+    passwordResetExpires: {
+        type: Date,
+        select: false
+    },
+
     phone: {
         type: String,
         default: ""

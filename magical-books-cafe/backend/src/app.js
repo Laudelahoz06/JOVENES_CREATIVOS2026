@@ -17,6 +17,10 @@ import aiRoutes from "./routes/aiRoutes.js";
 
 const app = express();
 
+// Detrás de ngrok/proxy las peticiones llegan con X-Forwarded-For;
+// express-rate-limit lo exige para no tumbar la app en cada request.
+app.set("trust proxy", 1);
+
 
 // añadir cabeceras http para mejorar segurisdad
 app.use(helmet());

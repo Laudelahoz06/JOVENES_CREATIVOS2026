@@ -3,6 +3,8 @@ import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { apiRequest } from "../services/api";
 import AccountLayout from "../layouts/AccountLayout";
+import PasswordStrength from "../components/auth/PasswordStrength";
+import { isStrongPassword, missingPasswordRules } from "../utils/password";
 
 const PREFERENCE_FIELDS = [
     { key: "favoriteBooks", label: "Libros favoritos" },
@@ -34,6 +36,16 @@ function Profile() {
     const [saving, setSaving] = useState(false);
     const [feedback, setFeedback] = useState(null);
     const [errors, setErrors] = useState({});
+
+    // Formulario de cambio de contraseña.
+    const [passwordForm, setPasswordForm] = useState({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: ""
+    });
+    const [changingPassword, setChangingPassword] = useState(false);
+    const [passwordFeedback, setPasswordFeedback] = useState(null);
+    const [passwordErrors, setPasswordErrors] = useState({});
 
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -108,6 +120,81 @@ function Profile() {
             });
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handlePasswordChange = (event) => {
+        const { name, value } = event.target;
+
+        setPasswordForm((previous) => ({ ...previous, [name]: value }));
+        setPasswordFeedback(null);
+        setPasswordErrors((previous) => ({ ...previous, [name]: undefined }));
+    };
+
+    const handlePasswordSubmit = async (event) => {
+        event.preventDefault();
+
+        const nextErrors = {};
+
+        if (!passwordForm.currentPassword) {
+            nextErrors.currentPassword = "Ingresa tu contraseña actual.";
+        }
+
+        if (!isStrongPassword(passwordForm.newPassword)) {
+            nextErrors.newPassword =
+                "Falta: " +
+                missingPasswordRules(passwordForm.newPassword).join(", ") +
+                ".";
+        }
+
+        if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+            nextErrors.confirmPassword = "Las contraseñas no coinciden.";
+        }
+
+        if (
+            passwordForm.currentPassword &&
+            passwordForm.newPassword &&
+            passwordForm.currentPassword === passwordForm.newPassword
+        ) {
+            nextErrors.newPassword =
+                "La nueva contraseña debe ser distinta a la actual.";
+        }
+
+        if (Object.keys(nextErrors).length > 0) {
+            setPasswordErrors(nextErrors);
+            return;
+        }
+
+        setChangingPassword(true);
+        setPasswordFeedback(null);
+
+        try {
+            const data = await apiRequest("/auth/password", {
+                method: "PATCH",
+                body: JSON.stringify({
+                    currentPassword: passwordForm.currentPassword,
+                    newPassword: passwordForm.newPassword
+                })
+            });
+
+            setPasswordForm({
+                currentPassword: "",
+                newPassword: "",
+                confirmPassword: ""
+            });
+
+            setPasswordFeedback({
+                type: "success",
+                message: data.message || "Contraseña actualizada."
+            });
+
+        } catch (error) {
+            setPasswordFeedback({
+                type: "error",
+                message: error.message || "No se pudo cambiar la contraseña."
+            });
+        } finally {
+            setChangingPassword(false);
         }
     };
 
@@ -227,6 +314,103 @@ function Profile() {
                     disabled={saving}
                 >
                     {saving ? "Guardando..." : "Guardar cambios ✦"}
+                </button>
+
+            </form>
+
+            <form
+                className="profile-form-card"
+                onSubmit={handlePasswordSubmit}
+                noValidate
+            >
+                <h2>Cambiar contraseña</h2>
+
+                <p className="profile-hint">
+                    Usa al menos 8 caracteres con mayúscula, minúscula,
+                    número y un carácter especial.
+                </p>
+
+                <div className="profile-field">
+                    <label htmlFor="current-password">
+                        Contraseña actual
+                    </label>
+                    <input
+                        id="current-password"
+                        name="currentPassword"
+                        type="password"
+                        value={passwordForm.currentPassword}
+                        onChange={handlePasswordChange}
+                        autoComplete="current-password"
+                    />
+                    {passwordErrors.currentPassword && (
+                        <small className="field-error">
+                            {passwordErrors.currentPassword}
+                        </small>
+                    )}
+                </div>
+
+                <div className="profile-field">
+                    <label htmlFor="new-password">
+                        Nueva contraseña
+                    </label>
+                    <input
+                        id="new-password"
+                        name="newPassword"
+                        type="password"
+                        value={passwordForm.newPassword}
+                        onChange={handlePasswordChange}
+                        autoComplete="new-password"
+                    />
+                    {passwordErrors.newPassword && (
+                        <small className="field-error">
+                            {passwordErrors.newPassword}
+                        </small>
+                    )}
+                </div>
+
+                <PasswordStrength password={passwordForm.newPassword} />
+
+                <div className="profile-field">
+                    <label htmlFor="confirm-new-password">
+                        Confirmar nueva contraseña
+                    </label>
+                    <input
+                        id="confirm-new-password"
+                        name="confirmPassword"
+                        type="password"
+                        value={passwordForm.confirmPassword}
+                        onChange={handlePasswordChange}
+                        autoComplete="new-password"
+                    />
+                    {passwordErrors.confirmPassword && (
+                        <small className="field-error">
+                            {passwordErrors.confirmPassword}
+                        </small>
+                    )}
+                </div>
+
+                {passwordFeedback && (
+                    <div
+                        className={`form-feedback form-feedback-${passwordFeedback.type}`}
+                        role="alert"
+                    >
+                        <span>
+                            {passwordFeedback.type === "success"
+                                ? "✓"
+                                : "⚠"}
+                        </span>
+                        {passwordFeedback.message}
+                    </div>
+                )}
+
+                <button
+                    type="submit"
+                    className="btn-primary"
+                    disabled={changingPassword}
+                >
+                    {changingPassword
+                        ? "Actualizando..."
+                        : "Cambiar contraseña ✦"}
                 </button>
 
             </form>

@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 
 import { apiRequest } from "../../services/api";
 import GeneralSection from "./GeneralSection";
+import ProductsSection from "./ProductsSection";
 import RentalsSection from "./RentalsSection";
 import PaymentsSection from "./PaymentsSection";
 
 const OVERVIEW_TABS = [
     { id: "general", label: "General" },
+    { id: "productos", label: "Productos y servicios" },
     { id: "alquileres", label: "Alquileres" },
     { id: "pagos", label: "Pagos" }
 ];
@@ -76,6 +78,10 @@ function AdminOverview({ onSelectTab }) {
             <div className="admin-tab-content">
                 {activeTab === "general" && (
                     <GeneralSection stats={stats} />
+                )}
+
+                {activeTab === "productos" && (
+                    <ProductsSection stats={stats} />
                 )}
 
                 {activeTab === "alquileres" && (

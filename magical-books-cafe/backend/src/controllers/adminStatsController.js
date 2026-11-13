@@ -79,6 +79,7 @@ export const getAdminStats = async (req, res, next) => {
             pedidosEstado,
             topProductos,
             categoriasVendidas,
+            ventasPorTipo,
             alquileresMes,
             alquileresFormato,
             alquileresEstado,
@@ -177,6 +178,39 @@ export const getAdminStats = async (req, res, next) => {
                     $group: {
                         _id: {
                             $ifNull: ["$producto.category", "Otros"]
+                        },
+                        quantity: { $sum: "$items.quantity" },
+                        revenue: {
+                            $sum: {
+                                $multiply: ["$items.price", "$items.quantity"]
+                            }
+                        }
+                    }
+                },
+                { $sort: { revenue: -1 } }
+            ]),
+            // ---- Ventas por tipo de ítem (productos vs servicios) ----
+            Order.aggregate([
+                { $match: { status: { $ne: "cancelado" } } },
+                { $unwind: "$items" },
+                {
+                    $lookup: {
+                        from: "products",
+                        localField: "items.product",
+                        foreignField: "_id",
+                        as: "producto"
+                    }
+                },
+                {
+                    $unwind: {
+                        path: "$producto",
+                        preserveNullAndEmptyArrays: true
+                    }
+                },
+                {
+                    $group: {
+                        _id: {
+                            $ifNull: ["$producto.type", "otro"]
                         },
                         quantity: { $sum: "$items.quantity" },
                         revenue: {
@@ -467,6 +501,11 @@ export const getAdminStats = async (req, res, next) => {
                 })),
                 salesByCategory: categoriasVendidas.map((row) => ({
                     category: row._id,
+                    quantity: row.quantity,
+                    revenue: row.revenue
+                })),
+                salesByType: ventasPorTipo.map((row) => ({
+                    type: row._id,
                     quantity: row.quantity,
                     revenue: row.revenue
                 })),
