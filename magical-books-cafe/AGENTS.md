@@ -48,6 +48,10 @@ No test, lint, or typecheck scripts exist in backend.
 - `npm run build` — `vite build` (output `dist/`)
 - `npm run lint` — `eslint .` (flat config in `eslint.config.js`)
 - `npm run preview` — `vite preview`
+- `npm test` — `vitest run` (unit tests, jsdom)
+- `npm run test:watch` — `vitest` (watch mode)
+
+**Tests:** Vitest + @testing-library/react + jsdom. Config en `vite.config.js` (`test` block, `globals: true`), setup en `src/test/setup.js`. Tests en `src/**/*.test.{js,jsx}`.
 
 **Required env:** create `frontend/.env` with:
 

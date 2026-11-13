@@ -1,6 +1,6 @@
 # Notas de avance — Magical Books Café
 
-> Última actualización: 2026-11-12 — navbar con botón "Cerrar sesión" estilo admin + **stock descontado/restaurado en pedidos** + rate-limit adaptado a dev; **push `5c54e79` hecho con la cuenta Laudelahoz06 vía `gh`**
+> Última actualización: 2026-11-12 — **pruebas de frontend con Vitest (41 OK)** + navbar con botón "Cerrar sesión" estilo admin + **stock descontado/restaurado en pedidos** + rate-limit adaptado a dev; **push `5c54e79` hecho con la cuenta Laudelahoz06 vía `gh`**
 >
 > ⚠️ **Regla del equipo:** **Solicitar autorización antes de cualquier cambio en git** (commit, push, stash, reset, etc.). No se toca git sin que el usuario lo apruebe.
 
@@ -132,11 +132,25 @@
 - **Nota:** hay movimientos `InventoryMovement` de prueba en la DB (corridas de tests previas al cambio no registraban movimientos de venta)
 - **Rate-limit adaptado a desarrollo (2026-11-12):** al hacer clic en "Iniciar sesión" salía **429 Too Many Requests** — las corridas de tests + la navegación local comparten IP (localhost) y agotaban los límites en memoria (100 req/15 min globales + 10 logins/15 min). Solución aprobada: **límites según `NODE_ENV`** — producción mantiene 100 (`app.js`) y 10 (`authRoutes.js`); **desarrollo usa 10000 y 500**. Verificado con header `RateLimit-Policy: 10000;w=900` y reinicio del backend; pruebas 29/29 + 27/27 después del cambio. **Si vuelve a bloquear en dev:** reiniciar el backend (los contadores viven en memoria)
 
+## Pruebas de frontend con Vitest (2026-11-12)
+- **Instalado:** `vitest@5`, `jsdom`, `@testing-library/react@16`, `@testing-library/jest-dom@7`, `@testing-library/user-event` (devDependencies del frontend)
+- **Config:** bloque `test` en `vite.config.js` — `environment: 'jsdom'`, `globals: true`, `setupFiles: './src/test/setup.js'` (importa `@testing-library/jest-dom/vitest`), `css: false`, `restoreMocks: true`; `defineConfig` ahora sale de `vitest/config` (en vez de `vite`)
+- **Scripts nuevos:** `npm test` (`vitest run`) y `npm run test:watch` (`vitest`)
+- **6 archivos / 41 pruebas (todas OK):**
+  - `src/utils/format.test.js` (10) — `formatCOP` (miles, sin decimales, null→0), `formatDate` (vacío→"—", incluye año), los 5 mapas de etiquetas completos
+  - `src/services/api.test.js` (7) — URL base + `Content-Type`, token `Bearer` solo con sesión, cabeceras extra respetadas, 204→`null`, mensaje del backend, mensaje genérico, `TypeError` de red → mensaje "No se pudo conectar…"
+  - `src/context/CartContext.test.jsx` (13) — arranque vacío, recupera `localStorage`, JSON corrupto→vacío, agregar/persistir, acumular mismo producto, separar por formato, agotado→`ok:false`, límite por stock, `updateQuantity` con tope y mínimo 1, `removeItem` por formato, `clearCart`, `useCart` fuera del proveedor lanza
+  - `src/components/catalog/ProductCard.test.jsx` (4) — info del producto + link a ficha, añadir muestra confirmación y suma el carrito, usa el único formato disponible, stock 0 → botón "Agotado" deshabilitado
+  - `src/components/common/ProtectedRoute.test.jsx` (5) — "Verificando permisos…", no sesión→`/iniciar-sesion`, rol no permitido→`/`, sesión válida y rol permitido→contenido
+  - `src/pages/Login.test.jsx` (5) — formulario + enlace a `/registro`, envía credenciales con correo recortado y redirige a `/`, admin→`/admin`, error del backend en `role="alert"`, alternar mostrar/ocultar contraseña
+- **Patrón:** `vi.hoisted` + `vi.mock` para `useAuth`, `renderHook` con `wrapper` para el `CartProvider`, `userEvent.setup()` por test, `localStorage.clear()` en `beforeEach`
+- **Verificación:** `npm test` 41/41 · `npm run lint` 0 · `npm run build` OK (CSS 45.3 kB, JS 350 kB)
+
 ## Qué falta (prioridad sugerida)
 1. **Proveedor de IA:** configurar `AI_API_KEY`/`AI_MODEL` en `backend/.env` para respuestas abiertas (el motor local ya funciona)
 2. **Despliegue** (frontend estático + backend + Atlas)
-3. **Pruebas de frontend** (Vitest + Testing Library)
-4. Actualizar `DOCUMENTACION_PROYECTO.md` y `AGENTS.md` (rutas reales: `/iniciar-sesion`, `/registro`; `VITE_API_URL` debe llevar `/api`)
+3. ~~Pruebas de frontend (Vitest + Testing Library)~~ ✅ hechas (41 pruebas)
+4. Actualizar `DOCUMENTACION_PROYECTO.md` y `AGENTS.md` (rutas reales: `/iniciar-sesion`, `/registro`; `VITE_API_URL` debe llevar `/api`) — `AGENTS.md` ya tiene los scripts de test
 
 ## Checklist de setup local
 - [x] `npm install` en `magical-books-cafe/backend`
@@ -167,6 +181,8 @@ npm run test:admin      # 27 pruebas administrativas
 npm run dev             # vite (5173)
 npm run build
 npm run lint
+npm test                # vitest run (41 pruebas)
+npm run test:watch      # vitest en watch
 ```
 
 ## Tipos de datos (esquemas Mongoose)
