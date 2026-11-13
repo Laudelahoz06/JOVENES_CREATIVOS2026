@@ -49,6 +49,14 @@ const experienceSchema = new mongoose.Schema({
         maxlength: 500
     },
 
+    // Enlace de invitación al grupo de WhatsApp (se muestra como QR).
+    whatsappUrl: {
+        type: String,
+        default: "",
+        trim: true,
+        maxlength: 500
+    },
+
     category: {
         type: String,
         default: "General",

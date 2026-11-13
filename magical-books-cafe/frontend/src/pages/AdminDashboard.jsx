@@ -123,7 +123,9 @@ function AdminDashboard() {
                         onClick={() => setGestionOpen((open) => !open)}
                     >
                         <span className="admin-tree-icon">{item.icon}</span>
-                        <span>{item.label}</span>
+                        <span className="admin-tree-parent-label">
+                            {item.label}
+                        </span>
                         <span
                             className={
                                 gestionOpen
@@ -135,35 +137,42 @@ function AdminDashboard() {
                         </span>
                     </button>
 
-                    {gestionOpen && (
-                        <div className="admin-tree-children">
-                            {item.children.map((child) => (
-                                <button
-                                    type="button"
-                                    key={child.key}
-                                    className={
-                                        activeTab === child.key
-                                            ? "admin-tree-item active"
-                                            : "admin-tree-item"
-                                    }
-                                    onClick={() => selectTab(child.key)}
-                                    aria-current={
-                                        activeTab === child.key
-                                            ? "page"
-                                            : undefined
-                                    }
-                                >
-                                    <span className="admin-tree-branch">
-                                        │
-                                    </span>
-                                    <span className="admin-tree-icon">
-                                        {child.icon}
-                                    </span>
-                                    <span>{child.label}</span>
-                                </button>
-                            ))}
-                        </div>
-                    )}
+                    <div
+                        className={
+                            gestionOpen
+                                ? "admin-tree-children open"
+                                : "admin-tree-children"
+                        }
+                        aria-hidden={!gestionOpen}
+                    >
+                        {item.children.map((child, index) => (
+                            <button
+                                type="button"
+                                key={child.key}
+                                className={
+                                    activeTab === child.key
+                                        ? "admin-tree-item active"
+                                        : "admin-tree-item"
+                                }
+                                style={{ "--item-delay": `${index * 40}ms` }}
+                                onClick={() => selectTab(child.key)}
+                                aria-current={
+                                    activeTab === child.key
+                                        ? "page"
+                                        : undefined
+                                }
+                            >
+                                <span
+                                    className="admin-tree-dot"
+                                    aria-hidden="true"
+                                />
+                                <span className="admin-tree-icon">
+                                    {child.icon}
+                                </span>
+                                <span>{child.label}</span>
+                            </button>
+                        ))}
+                    </div>
                 </div>
             );
         }
@@ -181,7 +190,7 @@ function AdminDashboard() {
                 aria-current={activeTab === item.key ? "page" : undefined}
             >
                 <span className="admin-tree-icon">{item.icon}</span>
-                <span>{item.label}</span>
+                <span className="admin-tree-item-label">{item.label}</span>
 
                 {item.key === "mensajes" && unreadMessages > 0 && (
                     <span
@@ -216,13 +225,26 @@ function AdminDashboard() {
                 }
             >
                 <Link to="/" className="brand admin-brand">
-                    <span className="brand-icon">✦</span>
-                    <span>Magical Books Café</span>
+                    <span className="brand-icon-badge">✦</span>
+                    <span className="admin-brand-text">
+                        Magical Books
+                        <small>Panel administrativo</small>
+                    </span>
                 </Link>
 
                 <nav className="admin-tree" aria-label="Menú administrativo">
+                    <p className="admin-tree-label">Menú</p>
                     {MENU.map(renderTreeItem)}
                 </nav>
+
+                <div className="admin-sidebar-footer">
+                    <Link to="/" className="admin-sidebar-home">
+                        ← Volver a la tienda
+                    </Link>
+                    <p className="admin-sidebar-quote">
+                        «Gestiona con calma, sirve con magia.»
+                    </p>
+                </div>
             </aside>
 
             {/* ---------- Columna derecha: header + contenido ---------- */}

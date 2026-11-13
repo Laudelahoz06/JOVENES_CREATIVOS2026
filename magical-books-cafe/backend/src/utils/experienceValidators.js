@@ -40,6 +40,11 @@ export const createExperienceValidation = [
         .isURL({ protocols: ["http", "https"], require_protocol: true, host_whitelist: ["open.spotify.com", "spotify.link"] })
         .withMessage("La URL debe ser de Spotify (open.spotify.com)."),
 
+    body("whatsappUrl")
+        .optional({ values: "falsy" })
+        .isURL({ protocols: ["http", "https"], require_protocol: true, host_whitelist: ["chat.whatsapp.com", "wa.me", "api.whatsapp.com", "whatsapp.com"] })
+        .withMessage("La URL debe ser un enlace de WhatsApp (chat.whatsapp.com o wa.me)."),
+
     body("category")
         .optional({ values: "falsy" })
         .trim()
@@ -88,6 +93,10 @@ export const updateExperienceValidation = [
     body("spotifyUrl")
         .optional({ values: "falsy" })
         .isURL({ protocols: ["http", "https"], require_protocol: true, host_whitelist: ["open.spotify.com", "spotify.link"] }),
+
+    body("whatsappUrl")
+        .optional({ values: "falsy" })
+        .isURL({ protocols: ["http", "https"], require_protocol: true, host_whitelist: ["chat.whatsapp.com", "wa.me", "api.whatsapp.com", "whatsapp.com"] }),
 
     body("category").optional().trim().notEmpty().isLength({ max: 80 }),
 

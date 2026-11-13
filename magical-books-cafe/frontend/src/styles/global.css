@@ -798,6 +798,24 @@ section {
     line-height: 1.5;
 }
 
+/* QR de WhatsApp dentro del modal */
+
+.whatsapp-qr-box {
+    display: flex;
+    justify-content: center;
+    padding: 18px;
+    border-radius: 14px;
+    background: rgba(214, 169, 104, 0.08);
+    border: 1px dashed rgba(214, 169, 104, 0.4);
+}
+
+.whatsapp-qr-img {
+    width: min(320px, 100%);
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4);
+}
+
 @media (max-width: 768px) {
 
     .navbar {

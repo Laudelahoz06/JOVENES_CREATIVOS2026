@@ -10,6 +10,7 @@ const EMPTY_FORM = {
     to: "",
     action: "",
     spotifyUrl: "",
+    whatsappUrl: "",
     category: "General",
     order: 0,
     featured: false,
@@ -79,6 +80,7 @@ function AdminExperiences() {
             to: experience.to || "",
             action: experience.action || "",
             spotifyUrl: experience.spotifyUrl || "",
+            whatsappUrl: experience.whatsappUrl || "",
             category: experience.category || "General",
             order: experience.order ?? 0,
             featured: Boolean(experience.featured),
@@ -119,6 +121,7 @@ function AdminExperiences() {
             to: form.to.trim(),
             action: form.action,
             spotifyUrl: form.spotifyUrl.trim(),
+            whatsappUrl: form.whatsappUrl.trim(),
             category: form.category.trim() || "General",
             order: Number(form.order) || 0,
             featured: form.featured,
@@ -365,6 +368,17 @@ function AdminExperiences() {
                                 value={form.spotifyUrl}
                                 onChange={handleChange}
                                 placeholder="https://open.spotify.com/playlist/..."
+                            />
+                        </label>
+
+                        <label className="admin-form-full">
+                            Grupo de WhatsApp (opcional, se muestra como QR)
+                            <input
+                                name="whatsappUrl"
+                                type="url"
+                                value={form.whatsappUrl}
+                                onChange={handleChange}
+                                placeholder="https://chat.whatsapp.com/..."
                             />
                         </label>
 

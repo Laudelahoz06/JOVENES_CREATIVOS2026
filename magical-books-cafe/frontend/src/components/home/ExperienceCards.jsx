@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import QRCode from "qrcode";
 
 import { getProducts } from "../../services/products";
 import { getExperiences } from "../../services/experiences";
@@ -95,6 +96,29 @@ function ExperienceCards() {
     const [services, setServices] = useState([]);
     const [managed, setManaged] = useState([]);
     const [spotifyOpen, setSpotifyOpen] = useState(null);
+    const [whatsappOpen, setWhatsappOpen] = useState(null);
+    const [qrImage, setQrImage] = useState("");
+
+    // Abre el modal de WhatsApp y genera el QR del enlace del grupo.
+    const openWhatsapp = async (item) => {
+        setWhatsappOpen(item);
+        setQrImage("");
+
+        try {
+            const url = await QRCode.toDataURL(item.whatsappUrl, {
+                width: 320,
+                margin: 2,
+                color: {
+                    dark: "#171321",
+                    light: "#F4EBDD"
+                }
+            });
+
+            setQrImage(url);
+        } catch {
+            setQrImage("");
+        }
+    };
 
     // Convierte la URL de playlist de Spotify en su embed incrustable.
     const toSpotifyEmbed = (url) => {
@@ -160,7 +184,8 @@ function ExperienceCards() {
         image: item.image || null,
         to: item.to || undefined,
         action: item.action || undefined,
-        spotifyUrl: item.spotifyUrl || undefined
+        spotifyUrl: item.spotifyUrl || undefined,
+        whatsappUrl: item.whatsappUrl || undefined
     }));
 
     const serviceExperiences = services.map((product) => ({
@@ -231,19 +256,37 @@ function ExperienceCards() {
 
                                 <p>{item.description}</p>
 
-                                {(item.to || item.action || item.spotifyUrl) && (
+                                {(item.to ||
+                                    item.action ||
+                                    item.spotifyUrl ||
+                                    item.whatsappUrl) && (
                                     <span className="experience-cta">
-                                        {item.action === "assistant"
-                                            ? "Pregúntale →"
-                                            : item.spotifyUrl
-                                              ? "Escuchar →"
-                                              : "Ver más →"}
+                                        {item.whatsappUrl
+                                            ? "Unirse →"
+                                            : item.action === "assistant"
+                                              ? "Pregúntale →"
+                                              : item.spotifyUrl
+                                                ? "Escuchar →"
+                                                : "Ver más →"}
                                     </span>
                                 )}
 
                             </div>
                         </>
                     );
+
+                    if (item.whatsappUrl) {
+                        return (
+                            <button
+                                type="button"
+                                className="experience-card"
+                                key={item.title}
+                                onClick={() => openWhatsapp(item)}
+                            >
+                                {content}
+                            </button>
+                        );
+                    }
 
                     if (item.to) {
                         return (
@@ -294,6 +337,79 @@ function ExperienceCards() {
                 })}
 
             </div>
+
+            {/* Modal con el QR del grupo de WhatsApp */}
+            {whatsappOpen && (
+                <div
+                    className="spotify-modal-overlay"
+                    onClick={() => setWhatsappOpen(null)}
+                    role="presentation"
+                >
+                    <div
+                        className="spotify-modal"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label={`Grupo de WhatsApp de ${whatsappOpen.title}`}
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        <div className="spotify-modal-header">
+                            <h3>
+                                {whatsappOpen.icon} {whatsappOpen.title}
+                            </h3>
+                            <button
+                                type="button"
+                                className="admin-link-button"
+                                aria-label="Cerrar"
+                                onClick={() => setWhatsappOpen(null)}
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <p className="spotify-modal-description">
+                            {whatsappOpen.description}
+                        </p>
+
+                        <div className="whatsapp-qr-box">
+                            {qrImage ? (
+                                <img
+                                    className="whatsapp-qr-img"
+                                    src={qrImage}
+                                    alt={`Código QR del grupo de ${whatsappOpen.title}`}
+                                />
+                            ) : (
+                                <p className="admin-status">
+                                    Generando código QR...
+                                </p>
+                            )}
+                        </div>
+
+                        <div className="spotify-modal-actions">
+                            <a
+                                className="btn-primary"
+                                href={whatsappOpen.whatsappUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Unirse al grupo 💬
+                            </a>
+
+                            <button
+                                type="button"
+                                className="btn-secondary"
+                                onClick={() => setWhatsappOpen(null)}
+                            >
+                                Cerrar
+                            </button>
+                        </div>
+
+                        <p className="spotify-modal-hint">
+                            Escanea el código QR con tu celular o abre el
+                            enlace para unirte a nuestro grupo de WhatsApp.
+                        </p>
+                    </div>
+                </div>
+            )}
 
             {/* Modal con la playlist de Spotify */}
             {spotifyOpen && (
