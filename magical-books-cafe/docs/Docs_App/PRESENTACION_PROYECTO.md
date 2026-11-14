@@ -18,7 +18,7 @@ Una aplicación web completa para un **café literario**: los clientes exploran 
 
 ---
 
-## 2. Las 15 funcionalidades entregadas
+## 2. Las 15 funcionalidades
 
 1. **Contacto público** — formulario con validación en vivo (`/contacto`) que guarda mensajes en la base de datos.
 2. **Bandeja de mensajes admin** — leer, marcar como leído, eliminar y contador de pendientes.

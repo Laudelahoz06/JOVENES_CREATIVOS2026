@@ -149,7 +149,7 @@ function Navbar() {
 
                     <Link to="/" className="brand" onClick={closeMenu}>
                         <span className="brand-icon">✦</span>
-                        <span>Magical Books Café</span>
+                        <span>Magical Books Coffee</span>
                     </Link>
                 </div>
 
