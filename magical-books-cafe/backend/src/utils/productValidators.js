@@ -1,5 +1,7 @@
 import { body, query, param } from "express-validator";
 
+import { sanitizeUrl } from "./sanitizeUrl.js";
+
 const allowedTypes = ["coffee", "dessert", "book", "service"];
 
 const allowedFormats = [
@@ -46,11 +48,13 @@ export const createProductValidation = [
 
     body("image")
         .optional({ values: "falsy" })
+        .customSanitizer(sanitizeUrl)
         .isURL({ protocols: ["http", "https"], require_protocol: true })
         .withMessage("La imagen debe tener una URL HTTP o HTTPS válida."),
 
     body("imageUrl")
         .optional({ values: "falsy" })
+        .customSanitizer(sanitizeUrl)
         .isURL({ protocols: ["http", "https"], require_protocol: true })
         .withMessage("La imagen debe tener una URL HTTP o HTTPS válida."),
 
@@ -119,10 +123,12 @@ export const updateProductValidation = [
 
     body("image")
         .optional({ values: "falsy" })
+        .customSanitizer(sanitizeUrl)
         .isURL({ protocols: ["http", "https"], require_protocol: true }),
 
     body("imageUrl")
         .optional({ values: "falsy" })
+        .customSanitizer(sanitizeUrl)
         .isURL({ protocols: ["http", "https"], require_protocol: true }),
 
     body("formats").optional().isArray(),

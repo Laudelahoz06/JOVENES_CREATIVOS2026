@@ -1,0 +1,132 @@
+/* ==================================================================
+   Ajustes de responsive
+   ------------------------------------------------------------------
+   Archivo importado en src/main.jsx. Se deja aquí todo lo que deba
+   sobrescribirse por ancho de pantalla, para no dispersar media
+   queries entre global.css, features.css y auth.css.
+   ================================================================== */
+
+
+/* ------------------------------------------------------------------
+   Autenticación: login, registro, recuperar y restablecer contraseña.
+
+   auth.css no tiene ni una media query, así que .auth-container
+   mantenía su grid de dos columnas con un gap fijo de 75px. En un
+   teléfono eso dejaba dos columnas de unos 140px separadas por 75px.
+   ------------------------------------------------------------------ */
+
+@media (max-width: 900px) {
+
+    .auth-page {
+        padding: 48px 6%;
+    }
+
+    .auth-container {
+        grid-template-columns: 1fr;
+        gap: 40px;
+        max-width: 640px;
+        margin-inline: auto;
+    }
+
+    .auth-information {
+        max-width: 100%;
+    }
+
+    .auth-information > p {
+        max-width: 100%;
+    }
+
+    .auth-quote {
+        margin-top: 30px;
+    }
+
+    .auth-card {
+        padding: 30px;
+    }
+
+    .auth-decoration {
+        width: 220px;
+        height: 220px;
+    }
+
+}
+
+@media (max-width: 560px) {
+
+    .auth-page {
+        padding: 32px 5%;
+    }
+
+    .auth-container {
+        gap: 28px;
+    }
+
+    /* En columna única el bloque de texto se centra sobre la tarjeta. */
+    .auth-information {
+        text-align: center;
+    }
+
+    .auth-symbol {
+        font-size: 36px;
+        margin-bottom: 18px;
+    }
+
+    .auth-information h1 {
+        font-size: clamp(30px, 8vw, 44px);
+        margin: 16px 0;
+    }
+
+    .auth-information > p {
+        line-height: 1.7;
+    }
+
+    /* La cita pasa de borde izquierdo a borde superior para que el
+       texto centrado no quede desalineado en pantallas angostas. */
+    .auth-quote {
+        margin-top: 24px;
+        padding-left: 0;
+        padding-top: 14px;
+        border-left: none;
+        border-top: 2px solid var(--color-accent);
+        text-align: center;
+    }
+
+    .auth-quote span {
+        font-size: 24px;
+    }
+
+    .auth-card {
+        padding: 22px 18px;
+        border-radius: 16px;
+    }
+
+    .auth-card-icon {
+        width: 46px;
+        height: 46px;
+        font-size: 23px;
+        margin-bottom: 14px;
+    }
+
+    .auth-card-header {
+        margin-bottom: 24px;
+    }
+
+    .auth-card-header h2 {
+        font-size: 24px;
+    }
+
+    .auth-field {
+        margin-bottom: 18px;
+    }
+
+    .auth-field input {
+        height: 47px;
+    }
+
+    .auth-decoration {
+        width: 170px;
+        height: 170px;
+        filter: blur(80px);
+    }
+
+}

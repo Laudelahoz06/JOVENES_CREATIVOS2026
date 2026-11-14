@@ -56,10 +56,20 @@ function FeaturedProducts() {
 
                         <article className="product-card" key={product._id}>
 
-                            {product.image ? (
+                            {product.image || product.imageUrl ? (
                                 <img
-                                    src={product.image}
+                                    src={
+                                        product.image ||
+                                        product.imageUrl
+                                    }
                                     alt={product.name}
+                                    loading="lazy"
+                                    decoding="async"
+                                    onError={(event) => {
+                                        event.currentTarget.onerror = null;
+                                        event.currentTarget.src =
+                                            "/ProductoNoDisponible.png";
+                                    }}
                                 />
                             ) : (
                                 <div className="catalog-product-placeholder">

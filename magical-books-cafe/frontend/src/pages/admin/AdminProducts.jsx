@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 
 import { apiRequest } from "../../services/api";
 import { formatCOP } from "../../utils/format";
+import { sanitizeUrl } from "../../utils/url";
+import ImagePreview from "../../components/admin/ImagePreview";
 
 const EMPTY_FORM = {
     sku: "",
@@ -146,7 +148,7 @@ function AdminProducts() {
             type: form.type,
             category: form.category.trim(),
             price: Number(form.price),
-            image: form.image.trim(),
+            image: sanitizeUrl(form.image),
             featured: form.featured,
             formats: form.type === "book" ? form.formats : [],
             rental: {
@@ -387,16 +389,20 @@ function AdminProducts() {
                             />
                         </label>
 
-                        <label>
-                            Imagen (URL)
-                            <input
-                                name="image"
-                                type="url"
-                                value={form.image}
-                                onChange={handleChange}
-                                placeholder="https://..."
-                            />
-                        </label>
+                        <div>
+                            <label>
+                                Imagen (URL)
+                                <input
+                                    name="image"
+                                    type="url"
+                                    value={form.image}
+                                    onChange={handleChange}
+                                    placeholder="https://..."
+                                />
+                            </label>
+
+                            <ImagePreview url={form.image} />
+                        </div>
 
                         <label className="admin-form-full">
                             Descripción *

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { apiRequest } from "../../services/api";
+import { sanitizeUrl } from "../../utils/url";
+import ImagePreview from "../../components/admin/ImagePreview";
 
 const EMPTY_FORM = {
     title: "",
@@ -117,7 +119,7 @@ function AdminExperiences() {
             title: form.title.trim(),
             description: form.description.trim(),
             icon: form.icon.trim() || "✦",
-            image: form.image.trim(),
+            image: sanitizeUrl(form.image),
             to: form.to.trim(),
             action: form.action,
             spotifyUrl: form.spotifyUrl.trim(),
@@ -314,16 +316,20 @@ function AdminExperiences() {
                             />
                         </label>
 
-                        <label>
-                            Imagen (URL)
-                            <input
-                                name="image"
-                                type="url"
-                                value={form.image}
-                                onChange={handleChange}
-                                placeholder="https://..."
-                            />
-                        </label>
+                        <div>
+                            <label>
+                                Imagen (URL)
+                                <input
+                                    name="image"
+                                    type="url"
+                                    value={form.image}
+                                    onChange={handleChange}
+                                    placeholder="https://..."
+                                />
+                            </label>
+
+                            <ImagePreview url={form.image} />
+                        </div>
 
                         <label>
                             Categoría

@@ -1,5 +1,7 @@
 import { body, query, param } from "express-validator";
 
+import { sanitizeUrl } from "./sanitizeUrl.js";
+
 export const createExperienceValidation = [
     body("title")
         .trim()
@@ -21,6 +23,7 @@ export const createExperienceValidation = [
 
     body("image")
         .optional({ values: "falsy" })
+        .customSanitizer(sanitizeUrl)
         .isURL({ protocols: ["http", "https"], require_protocol: true })
         .withMessage("La imagen debe tener una URL HTTP o HTTPS válida."),
 
@@ -84,6 +87,7 @@ export const updateExperienceValidation = [
 
     body("image")
         .optional({ values: "falsy" })
+        .customSanitizer(sanitizeUrl)
         .isURL({ protocols: ["http", "https"], require_protocol: true }),
 
     body("to").optional().trim().isLength({ max: 300 }),

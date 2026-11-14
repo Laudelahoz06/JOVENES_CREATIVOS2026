@@ -2163,6 +2163,51 @@
     border-color: var(--color-primary);
 }
 
+/* Vista previa de la URL de imagen dentro del formulario admin. */
+
+.admin-image-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.admin-image-preview img {
+    width: 100%;
+    max-width: 220px;
+    height: 130px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid rgba(214, 169, 104, 0.35);
+    background: var(--color-background);
+}
+
+.admin-image-preview-text {
+    margin: 0;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: rgba(244, 235, 221, 0.7);
+}
+
+.admin-image-preview-ok {
+    color: #8fe3b0;
+}
+
+.admin-image-preview-fail {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(190, 65, 75, 0.12);
+    border: 1px solid rgba(220, 100, 110, 0.3);
+}
+
+.admin-image-preview-fail .admin-image-preview-text {
+    color: #F1A6AA;
+}
+
 .admin-form-extra {
     display: flex;
     flex-direction: column;
